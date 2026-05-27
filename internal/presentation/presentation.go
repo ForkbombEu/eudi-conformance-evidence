@@ -161,7 +161,7 @@ func (r *Result) tryPostStrategy(client *http.Client, uri, strategy string) (str
 	if err != nil {
 		return "", err
 	}
-	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	var resp *http.Response
 	var body []byte
