@@ -2,6 +2,7 @@
 package presentation
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/jwt"
+	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
 )
 
 // RequestURIFetch records how the request_uri was fetched.
@@ -161,13 +163,23 @@ func (r *Result) tryPostStrategy(client *http.Client, uri, strategy string) (str
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
+	var body []byte
 
-	body, err := io.ReadAll(resp.Body)
+	err = telemetry.TraceHTTP(context.Background(), "POST", uri, func() (int, error) {
+		var doErr error
+		resp, doErr = client.Do(httpReq)
+		if doErr != nil {
+			return 0, doErr
+		}
+		defer resp.Body.Close()
+
+		body, doErr = io.ReadAll(resp.Body)
+		if doErr != nil {
+			return resp.StatusCode, doErr
+		}
+		return resp.StatusCode, nil
+	})
 	if err != nil {
 		return "", err
 	}
@@ -212,13 +224,23 @@ func strategiesToTry(strategy string) []string {
 }
 
 func httpGet(client *http.Client, rawURL string) (string, error) {
-	resp, err := client.Get(rawURL)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
+	var body []byte
 
-	body, err := io.ReadAll(resp.Body)
+	err := telemetry.TraceHTTP(context.Background(), "GET", rawURL, func() (int, error) {
+		var fetchErr error
+		resp, fetchErr = client.Get(rawURL)
+		if fetchErr != nil {
+			return 0, fetchErr
+		}
+		defer resp.Body.Close()
+
+		body, fetchErr = io.ReadAll(resp.Body)
+		if fetchErr != nil {
+			return resp.StatusCode, fetchErr
+		}
+		return resp.StatusCode, nil
+	})
 	if err != nil {
 		return "", err
 	}

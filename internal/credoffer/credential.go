@@ -2,6 +2,7 @@
 package credoffer
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/jwt"
+	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
 )
 
 // ResolutionStep records one step in the credential-offer resolution chain.
@@ -194,15 +196,25 @@ func FetchIssuerMetadata(client *http.Client, credentialOffer json.RawMessage) (
 		FetchedAt: time.Now().UTC().Format(time.RFC3339),
 	}
 
-	resp, err := client.Get(metaURL)
-	if err != nil {
-		return nil, fetch, fmt.Errorf("fetch issuer metadata: %w", err)
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
+	var body []byte
 
-	body, err := io.ReadAll(resp.Body)
+	err := telemetry.TraceHTTP(context.Background(), "GET", metaURL, func() (int, error) {
+		var fetchErr error
+		resp, fetchErr = client.Get(metaURL)
+		if fetchErr != nil {
+			return 0, fmt.Errorf("fetch issuer metadata: %w", fetchErr)
+		}
+		defer resp.Body.Close()
+
+		body, fetchErr = io.ReadAll(resp.Body)
+		if fetchErr != nil {
+			return resp.StatusCode, fmt.Errorf("read issuer metadata: %w", fetchErr)
+		}
+		return resp.StatusCode, nil
+	})
 	if err != nil {
-		return nil, fetch, fmt.Errorf("read issuer metadata: %w", err)
+		return nil, fetch, err
 	}
 
 	fetch.HTTPStatus = resp.StatusCode
@@ -242,16 +254,25 @@ func FetchIssuerMetadata(client *http.Client, credentialOffer json.RawMessage) (
 func fetchURL(client *http.Client, rawURL string) (ResolutionStep, string, error) {
 	step := ResolutionStep{URL: rawURL}
 
-	resp, err := client.Get(rawURL)
+	var resp *http.Response
+	var body []byte
+
+	err := telemetry.TraceHTTP(context.Background(), "GET", rawURL, func() (int, error) {
+		var fetchErr error
+		resp, fetchErr = client.Get(rawURL)
+		if fetchErr != nil {
+			return 0, fetchErr
+		}
+		defer resp.Body.Close()
+
+		body, fetchErr = io.ReadAll(resp.Body)
+		if fetchErr != nil {
+			return resp.StatusCode, fetchErr
+		}
+		return resp.StatusCode, nil
+	})
 	if err != nil {
 		step.HTTPStatus = 0
-		return step, "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		step.HTTPStatus = resp.StatusCode
 		return step, "", err
 	}
 

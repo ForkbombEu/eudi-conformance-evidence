@@ -14,6 +14,7 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/output"
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
+	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
 )
 
 // Run executes the extract-context command.
@@ -34,6 +35,10 @@ func Run(args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
+
+	// Setup telemetry
+	shutdownTelemetry := telemetry.Setup()
+	defer shutdownTelemetry()
 
 	// Validate required flags
 	if *temporalInput == "" {
