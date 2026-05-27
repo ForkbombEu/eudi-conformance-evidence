@@ -209,8 +209,7 @@ func TestRunExtractionBytes(t *testing.T) {
 }
 
 func TestRunExtractionSteps(t *testing.T) {
-	var server *httptest.Server
-	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
 			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
