@@ -37,15 +37,8 @@ Temporal pipeline input
 
 ### With mise (recommended)
 
-```toml
-# mise.toml
-[tools]
-go = "1.26.2"
-task = "latest"
-```
-
 ```bash
-mise install
+mise use go@1.26.2
 go install github.com/forkbombeu/eudi-conformance-evidence@latest
 ```
 
