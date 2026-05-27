@@ -7,6 +7,8 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/cmd/extractcontext"
 )
 
+var version = "dev"
+
 const asciiArt = `
 ███████╗██╗   ██╗██████╗ ██╗      ██████╗ ██████╗ ███╗   ██╗███████╗
 ██╔════╝██║   ██║██╔══██╗██║     ██╔════╝██╔═══██╗████╗  ██║██╔════╝
@@ -37,6 +39,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  extract-context  Extract protocol context from pipeline input")
+		fmt.Fprintln(os.Stderr, "  version          Print version")
 		os.Exit(1)
 	}
 
@@ -46,6 +49,8 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
+	case "version", "--version":
+		fmt.Println(version)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
 		os.Exit(1)
