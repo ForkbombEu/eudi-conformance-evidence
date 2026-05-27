@@ -1,5 +1,6 @@
 name: Test & Release
 
+# Trigger on pushes and pull requests to main
 on:
   push:
     branches:
