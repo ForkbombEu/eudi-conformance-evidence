@@ -128,26 +128,38 @@ func WriteToDir(outDir string, c *CollectedResult) error {
 		return fmt.Errorf("create output directory: %w", err)
 	}
 
-	writeFile(filepath.Join(outDir, "discovered-steps.json"), c.DiscoveredSteps)
-	writeFile(filepath.Join(outDir, "extraction-summary.json"), c.Summary)
+	if err := writeFile(filepath.Join(outDir, "discovered-steps.json"), c.DiscoveredSteps); err != nil {
+		return err
+	}
+	if err := writeFile(filepath.Join(outDir, "extraction-summary.json"), c.Summary); err != nil {
+		return err
+	}
 
 	offerDir := filepath.Join(outDir, "credential-offers")
 	for i, r := range c.OfferResults {
 		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
-		writeCredentialOfferDir(filepath.Join(offerDir, subDir), c.DiscoveredSteps.CredentialOfferSteps[i], r)
+		if err := writeCredentialOfferDir(filepath.Join(offerDir, subDir), c.DiscoveredSteps.CredentialOfferSteps[i], r); err != nil {
+			return err
+		}
 	}
 
 	presDir := filepath.Join(outDir, "presentation-requests")
 	for i, r := range c.PresResults {
 		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
-		writePresentationDir(filepath.Join(presDir, subDir), c.DiscoveredSteps.PresentationRequestSteps[i], r)
+		if err := writePresentationDir(filepath.Join(presDir, subDir), c.DiscoveredSteps.PresentationRequestSteps[i], r); err != nil {
+			return err
+		}
 	}
 
 	if c.WellKnown != nil {
-		writeRaw(filepath.Join(outDir, ".well-known.json"), c.WellKnown)
+		if err := writeRaw(filepath.Join(outDir, ".well-known.json"), c.WellKnown); err != nil {
+			return err
+		}
 	}
 	if c.RequestURIOutput != nil {
-		writeRaw(filepath.Join(outDir, "request-uri-output.json"), c.RequestURIOutput)
+		if err := writeRaw(filepath.Join(outDir, "request-uri-output.json"), c.RequestURIOutput); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -165,23 +177,34 @@ func writeCredentialOfferDir(dir string, step discovery.Step, r *credoffer.Resul
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-	writeFile(filepath.Join(dir, "source-step.json"), step)
-	writeFile(filepath.Join(dir, "credential-offer-resolution-chain.json"), r)
+	if err := writeFile(filepath.Join(dir, "source-step.json"), step); err != nil {
+		return err
+	}
+	if err := writeFile(filepath.Join(dir, "credential-offer-resolution-chain.json"), r); err != nil {
+		return err
+	}
 	if r.Error != nil {
-		writeFile(filepath.Join(dir, "error.json"), r.Error)
-		return nil
+		return writeFile(filepath.Join(dir, "error.json"), r.Error)
 	}
 	if r.DeeplinkURI != "" {
-		os.WriteFile(filepath.Join(dir, "credential-offer-deeplink.txt"), []byte(r.DeeplinkURI), 0644)
+		if err := os.WriteFile(filepath.Join(dir, "credential-offer-deeplink.txt"), []byte(r.DeeplinkURI), 0644); err != nil {
+			return err
+		}
 	}
 	if r.CredentialOffer != nil {
-		writeRaw(filepath.Join(dir, "credential-offer.json"), r.CredentialOffer)
+		if err := writeRaw(filepath.Join(dir, "credential-offer.json"), r.CredentialOffer); err != nil {
+			return err
+		}
 	}
 	if r.IssuerMetadata != nil {
-		writeRaw(filepath.Join(dir, "well-known.json"), r.IssuerMetadata)
+		if err := writeRaw(filepath.Join(dir, "well-known.json"), r.IssuerMetadata); err != nil {
+			return err
+		}
 	}
 	if r.IssuerMetadataFetch != nil {
-		writeFile(filepath.Join(dir, "issuer-metadata-fetch.json"), r.IssuerMetadataFetch)
+		if err := writeFile(filepath.Join(dir, "issuer-metadata-fetch.json"), r.IssuerMetadataFetch); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -190,22 +213,31 @@ func writePresentationDir(dir string, step discovery.Step, r *presentation.Resul
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-	writeFile(filepath.Join(dir, "source-step.json"), step)
+	if err := writeFile(filepath.Join(dir, "source-step.json"), step); err != nil {
+		return err
+	}
 	if r.Error != nil {
-		writeFile(filepath.Join(dir, "error.json"), r.Error)
-		return nil
+		return writeFile(filepath.Join(dir, "error.json"), r.Error)
 	}
 	if r.DeeplinkURI != "" {
-		os.WriteFile(filepath.Join(dir, "presentation-deeplink.txt"), []byte(r.DeeplinkURI), 0644)
+		if err := os.WriteFile(filepath.Join(dir, "presentation-deeplink.txt"), []byte(r.DeeplinkURI), 0644); err != nil {
+			return err
+		}
 	}
 	if r.RequestURIFetch != nil {
-		writeFile(filepath.Join(dir, "request-uri-fetch.json"), r.RequestURIFetch)
+		if err := writeFile(filepath.Join(dir, "request-uri-fetch.json"), r.RequestURIFetch); err != nil {
+			return err
+		}
 	}
 	if r.RequestURIRaw != "" {
-		os.WriteFile(filepath.Join(dir, "request-uri-raw.jwt"), []byte(r.RequestURIRaw), 0644)
+		if err := os.WriteFile(filepath.Join(dir, "request-uri-raw.jwt"), []byte(r.RequestURIRaw), 0644); err != nil {
+			return err
+		}
 	}
 	if r.RequestObject != nil {
-		writeFile(filepath.Join(dir, "request-uri-output.json"), buildRequestObjectOutput(r))
+		if err := writeFile(filepath.Join(dir, "request-uri-output.json"), buildRequestObjectOutput(r)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -238,24 +270,23 @@ func sanitizeDirName(s string) string {
 	return string(result)
 }
 
-func writeFile(path string, v any) {
+func writeFile(path string, v any) error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return
+		return err
 	}
 	data = append(data, '\n')
-	os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0644)
 }
 
-func writeRaw(path string, data json.RawMessage) {
+func writeRaw(path string, data json.RawMessage) error {
 	var pretty any
 	if err := json.Unmarshal(data, &pretty); err == nil {
 		formatted, err := json.MarshalIndent(pretty, "", "  ")
 		if err == nil {
 			formatted = append(formatted, '\n')
-			os.WriteFile(path, formatted, 0644)
-			return
+			return os.WriteFile(path, formatted, 0644)
 		}
 	}
-	os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0644)
 }

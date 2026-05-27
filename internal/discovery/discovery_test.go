@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -168,6 +169,53 @@ func TestDiscoverRecursiveScan(t *testing.T) {
 	}
 }
 
+func TestDiscoverDeeplyNested(t *testing.T) {
+	// Recursive scan through multiple nesting levels with mixed content
+	input := `{
+		"level1": {
+			"level2": [
+				{"not_a_step": true, "value": 1},
+				{
+					"level3": {
+						"id": "deep-co", "use": "credential-offer",
+						"with": {"payload": {"credential_id": "deep-id"}}
+					}
+				}
+			]
+		}
+	}`
+
+	result, err := Discover([]byte(input))
+	if err != nil {
+		t.Fatalf("Discover failed: %v", err)
+	}
+	if len(result.CredentialOfferSteps) != 1 {
+		t.Errorf("expected 1 credential-offer step from deep nesting, got %d", len(result.CredentialOfferSteps))
+	}
+	if result.CredentialOfferSteps[0].CredentialID != "deep-id" {
+		t.Errorf("expected deep-id, got %s", result.CredentialOfferSteps[0].CredentialID)
+	}
+}
+
+func TestDiscoverRecursiveScanStepsInArray(t *testing.T) {
+	// Steps embedded in a generic array within a map
+	input := `{
+		"wrapper": [
+			{"id": "step-1", "use": "credential-offer", "with": {"credential_id": "id-1"}},
+			{"meta": "not-a-step"},
+			{"id": "step-2", "use": "credential-offer", "with": {"credential_id": "id-2"}}
+		]
+	}`
+
+	result, err := Discover([]byte(input))
+	if err != nil {
+		t.Fatalf("Discover failed: %v", err)
+	}
+	if len(result.CredentialOfferSteps) != 2 {
+		t.Errorf("expected 2 steps, got %d", len(result.CredentialOfferSteps))
+	}
+}
+
 func TestPipelineOrderPreservation(t *testing.T) {
 	input := `{
 		"workflow_definition": {
@@ -192,6 +240,17 @@ func TestPipelineOrderPreservation(t *testing.T) {
 	}
 	if result.CredentialOfferSteps[2].PipelineOrder != 2 {
 		t.Errorf("step 2 order: %d", result.CredentialOfferSteps[2].PipelineOrder)
+	}
+}
+
+func TestDiscoverReader(t *testing.T) {
+	input := `{"workflow_definition":{"steps":[{"id":"co-001","use":"credential-offer","with":{"credential_id":"test-id"}}]}}`
+	result, err := DiscoverReader(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("DiscoverReader failed: %v", err)
+	}
+	if len(result.CredentialOfferSteps) != 1 {
+		t.Errorf("expected 1 step, got %d", len(result.CredentialOfferSteps))
 	}
 }
 

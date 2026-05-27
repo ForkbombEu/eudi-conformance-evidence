@@ -33,26 +33,30 @@ const asciiArt = `
 `
 
 func main() {
-	if len(os.Args) < 2 {
+	if err := run(os.Args[1:]); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(args []string) error {
+	if len(args) < 1 {
 		fmt.Fprint(os.Stderr, asciiArt)
 		fmt.Fprintln(os.Stderr, "Usage: eudi-conformance-evidence <command>")
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  extract-context  Extract protocol context from pipeline input")
 		fmt.Fprintln(os.Stderr, "  version          Print version")
-		os.Exit(1)
+		return fmt.Errorf("no command provided")
 	}
 
-	switch os.Args[1] {
+	switch args[0] {
 	case "extract-context":
-		if err := extractcontext.Run(os.Args[2:]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
+		return extractcontext.Run(args[1:])
 	case "version", "--version":
 		fmt.Println(version)
+		return nil
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
-		os.Exit(1)
+		return fmt.Errorf("unknown command: %s", args[0])
 	}
 }

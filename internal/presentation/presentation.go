@@ -172,7 +172,7 @@ func (r *Result) tryPostStrategy(client *http.Client, uri, strategy string) (str
 		if doErr != nil {
 			return 0, doErr
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		body, doErr = io.ReadAll(resp.Body)
 		if doErr != nil {
@@ -233,7 +233,7 @@ func httpGet(client *http.Client, rawURL string) (string, error) {
 		if fetchErr != nil {
 			return 0, fetchErr
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		body, fetchErr = io.ReadAll(resp.Body)
 		if fetchErr != nil {

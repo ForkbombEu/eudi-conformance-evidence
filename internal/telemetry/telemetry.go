@@ -64,7 +64,7 @@ func Setup() ShutdownFunc {
 // the response status code. The span records method, URL, and status.
 func TraceHTTP(ctx context.Context, method, url string, fn func() (statusCode int, err error)) error {
 	tracer := otel.Tracer("eudi-conformance-evidence")
-	ctx, span := tracer.Start(ctx, fmt.Sprintf("HTTP %s %s", method, truncate(url, 120)))
+	_, span := tracer.Start(ctx, fmt.Sprintf("HTTP %s %s", method, truncate(url, 120)))
 	defer span.End()
 
 	span.SetAttributes(

@@ -205,7 +205,7 @@ func FetchIssuerMetadata(client *http.Client, credentialOffer json.RawMessage) (
 		if fetchErr != nil {
 			return 0, fmt.Errorf("fetch issuer metadata: %w", fetchErr)
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		body, fetchErr = io.ReadAll(resp.Body)
 		if fetchErr != nil {
@@ -263,7 +263,7 @@ func fetchURL(client *http.Client, rawURL string) (ResolutionStep, string, error
 		if fetchErr != nil {
 			return 0, fetchErr
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		body, fetchErr = io.ReadAll(resp.Body)
 		if fetchErr != nil {
