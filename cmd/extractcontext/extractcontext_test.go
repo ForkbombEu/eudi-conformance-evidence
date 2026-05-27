@@ -42,12 +42,12 @@ func TestRunWithMockCredimi(t *testing.T) {
 	credimiServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
-			w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
 		case "/api/verification/deeplink":
-			w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(credimiServer.URL+"/request.jwt") + `&request_uri_method=get`))
+			_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(credimiServer.URL+"/request.jwt") + `&request_uri_method=get`))
 		case "/request.jwt":
 			w.Header().Set("Content-Type", "application/jwt")
-			w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
+			_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
 		default:
 			w.WriteHeader(404)
 		}
@@ -171,12 +171,12 @@ func TestRunExtractionBytes(t *testing.T) {
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
-			w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
 		case "/api/verification/deeplink":
-			w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(server.URL+"/request.jwt") + `&request_uri_method=get`))
+			_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(server.URL+"/request.jwt") + `&request_uri_method=get`))
 		case "/request.jwt":
 			w.Header().Set("Content-Type", "application/jwt")
-			w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
+			_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
 		default:
 			w.WriteHeader(404)
 		}
@@ -213,7 +213,7 @@ func TestRunExtractionSteps(t *testing.T) {
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
-			w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
 		default:
 			w.WriteHeader(404)
 		}

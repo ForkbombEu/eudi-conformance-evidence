@@ -14,7 +14,7 @@ func TestResolveDirectCredentialOffer(t *testing.T) {
 			w.WriteHeader(400)
 			return
 		}
-		w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%2C%22credential_configuration_ids%22%3A%5B%22test%22%5D%7D`)) //nolint:errcheck
+		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%2C%22credential_configuration_ids%22%3A%5B%22test%22%5D%7D`)) //nolint:errcheck
 	}))
 	defer credimiServer.Close()
 
@@ -40,13 +40,13 @@ func TestResolveDirectCredentialOffer(t *testing.T) {
 func TestResolveNestedCredentialOfferURI(t *testing.T) {
 	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
+		_, _ = w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
 	}))
 	defer issuerServer.Close()
 
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		encodedURI := url.QueryEscape(issuerServer.URL + "/offers/nested?raw=true")
-		w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + encodedURI))
+		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + encodedURI))
 	}))
 	defer credimiServer.Close()
 
@@ -85,9 +85,9 @@ func TestResolveMaxDepthExceeded(t *testing.T) {
 	var server *httptest.Server
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/credential/deeplink" {
-			w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
 		} else {
-			w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
 		}
 	}))
 	defer server.Close()
@@ -142,12 +142,12 @@ func TestResolveNestedOfferURIReturnsJSON(t *testing.T) {
 	// resolveOfferURI returns concrete JSON directly
 	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
+		_, _ = w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
 	}))
 	defer issuerServer.Close()
 
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(issuerServer.URL)))
+		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(issuerServer.URL)))
 	}))
 	defer credimiServer.Close()
 
@@ -169,7 +169,7 @@ func TestResolveNestedOfferURIReturnsJSON(t *testing.T) {
 
 func TestResolveURLEncodedCredentialID(t *testing.T) {
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
 	}))
 	defer credimiServer.Close()
 
