@@ -7,11 +7,7 @@ tasks:
 
   lint:
     cmds:
-      - task lint:design
-
-  lint:design:
-    cmds:
-      - if [ -f DESIGN.md ]; then npx --yes @google/design.md lint DESIGN.md; fi
+      - go vet ./...
 
   run:
     cmds:
