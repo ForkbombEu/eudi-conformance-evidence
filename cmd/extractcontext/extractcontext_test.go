@@ -167,7 +167,7 @@ func TestRunWithStrict(t *testing.T) {
 
 func TestRunExtractionBytes(t *testing.T) {
 	// Mock Credimi that returns a direct credential offer
-	var server *httptest.Server
+	var server *httptest.Server //nolint:staticcheck
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
