@@ -161,7 +161,7 @@ func TestResolveNestedOfferURIReturnsJSON(t *testing.T) {
 		t.Fatal("expected credential offer, got nil")
 	}
 	var offer map[string]any
-	json.Unmarshal(result.CredentialOffer, &offer)
+	_ = json.Unmarshal(result.CredentialOffer, &offer)
 	if offer["credential_issuer"] != "https://issuer.example" {
 		t.Errorf("unexpected issuer: %v", offer["credential_issuer"])
 	}

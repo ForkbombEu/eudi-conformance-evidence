@@ -9,7 +9,7 @@ import (
 
 func TestSetupNoEndpoint(t *testing.T) {
 	// Ensure no endpoint is set
-	os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	_ = os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 
 	shutdown := Setup()
 	if shutdown == nil {
@@ -41,7 +41,7 @@ func TestTruncate(t *testing.T) {
 }
 
 func TestTraceHTTPSuccess(t *testing.T) {
-	os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	_ = os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	// Reset to no-op tracer
 	Setup()
 
@@ -54,7 +54,7 @@ func TestTraceHTTPSuccess(t *testing.T) {
 }
 
 func TestTraceHTTPError(t *testing.T) {
-	os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	_ = os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	Setup()
 
 	expectedErr := errors.New("connection refused")
@@ -76,7 +76,7 @@ func TestSetupWithInvalidEndpoint(t *testing.T) {
 }
 
 func TestTraceHTTPNon200(t *testing.T) {
-	os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	_ = os.Unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	Setup()
 
 	err := TraceHTTP(context.Background(), "GET", "http://example.com/api", func() (int, error) {
