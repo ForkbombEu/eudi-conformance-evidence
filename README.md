@@ -38,8 +38,7 @@ Temporal pipeline input
 ### With mise (recommended)
 
 ```bash
-mise use go@1.26.2
-go install github.com/forkbombeu/eudi-conformance-evidence@latest
+mise use github:forkbombeu/eudi-conformance-evidence@latest
 ```
 
 ### From GitHub Releases
