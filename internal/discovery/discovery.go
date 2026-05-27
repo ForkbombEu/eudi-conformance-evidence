@@ -4,6 +4,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // Step represents a discovered pipeline step.
@@ -19,6 +20,15 @@ type Step struct {
 type Result struct {
 	CredentialOfferSteps     []Step `json:"credential_offer_steps"`
 	PresentationRequestSteps []Step `json:"presentation_request_steps"`
+}
+
+// DiscoverReader reads pipeline JSON from r and discovers steps.
+func DiscoverReader(r io.Reader) (*Result, error) {
+	input, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("discovery: read input: %w", err)
+	}
+	return Discover(input)
 }
 
 // Discover parses pipeline input JSON and finds credential-offer and
