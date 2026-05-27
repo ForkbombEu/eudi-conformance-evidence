@@ -1,9 +1,10 @@
-// Package output writes extraction results to the filesystem.
+// Package output collects and serialises extraction results.
 package output
 
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
 )
 
-// ExtractionSummary is written to extraction-summary.json.
+// ExtractionSummary summarises an extraction run.
 type ExtractionSummary struct {
 	Status                          string   `json:"status"`
 	StartedAt                       string   `json:"started_at"`
@@ -25,70 +26,34 @@ type ExtractionSummary struct {
 	Errors                          []string `json:"errors"`
 }
 
-// WriteAll writes all extraction outputs to the output directory.
-func WriteAll(outDir string, disc *discovery.Result, offerResults []*credoffer.Result, presResults []*presentation.Result,
-	startedAt, finishedAt string, strict bool) error {
+// CollectedResult holds all extraction results in memory without touching the filesystem.
+type CollectedResult struct {
+	Summary          *ExtractionSummary
+	DiscoveredSteps  *discovery.Result
+	OfferResults     []*credoffer.Result
+	PresResults      []*presentation.Result
+	WellKnown        json.RawMessage // convenience alias (single offer)
+	RequestURIOutput json.RawMessage // convenience alias (single request)
+}
 
-	if err := os.MkdirAll(outDir, 0755); err != nil {
-		return fmt.Errorf("create output directory: %w", err)
-	}
+// Collect builds an in-memory CollectedResult from the extraction pipeline output.
+// Use this when you want to serialise the result yourself (e.g. Temporal activity, API response).
+func Collect(disc *discovery.Result, offerResults []*credoffer.Result, presResults []*presentation.Result,
+	startedAt, finishedAt string) *CollectedResult {
 
-	// Write discovered-steps.json
-	if err := writeJSON(filepath.Join(outDir, "discovered-steps.json"), disc); err != nil {
-		return err
-	}
-
-	// Write credential offers
-	offerDir := filepath.Join(outDir, "credential-offers")
 	offerSuccess := 0
-	for i, r := range offerResults {
-		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
-		if err := writeCredentialOffer(filepath.Join(offerDir, subDir), disc.CredentialOfferSteps[i], r); err != nil {
-			return err
-		}
+	for _, r := range offerResults {
 		if r.Status == "ok" {
 			offerSuccess++
 		}
 	}
-
-	// Write presentation requests
-	presDir := filepath.Join(outDir, "presentation-requests")
 	presSuccess := 0
-	for i, r := range presResults {
-		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
-		if err := writePresentationRequest(filepath.Join(presDir, subDir), disc.PresentationRequestSteps[i], r); err != nil {
-			return err
-		}
+	for _, r := range presResults {
 		if r.Status == "ok" {
 			presSuccess++
 		}
 	}
 
-	// Write convenience top-level aliases
-	if offerSuccess == 1 {
-		for _, r := range offerResults {
-			if r.Status == "ok" && r.IssuerMetadata != nil {
-				if err := writeRaw(filepath.Join(outDir, ".well-known.json"), r.IssuerMetadata); err != nil {
-					return err
-				}
-				break
-			}
-		}
-	}
-
-	if presSuccess == 1 {
-		for _, r := range presResults {
-			if r.Status == "ok" && r.RequestObject != nil {
-				tokenOutput := buildRequestObjectOutput(r)
-				if err := writeJSON(filepath.Join(outDir, "request-uri-output.json"), tokenOutput); err != nil {
-					return err
-				}
-				break
-			}
-		}
-	}
-
-	// Write extraction-summary.json
 	status := "ok"
 	var errors []string
 	if offerSuccess < len(offerResults) || presSuccess < len(presResults) {
@@ -109,32 +74,103 @@ func WriteAll(outDir string, disc *discovery.Result, offerResults []*credoffer.R
 		}
 	}
 
-	summary := ExtractionSummary{
-		Status:                          status,
-		StartedAt:                       startedAt,
-		FinishedAt:                      finishedAt,
-		CredentialOfferCount:            len(offerResults),
-		CredentialOfferSuccessCount:     offerSuccess,
-		PresentationRequestCount:        len(presResults),
-		PresentationRequestSuccessCount: presSuccess,
-		Errors:                          errors,
+	c := &CollectedResult{
+		DiscoveredSteps: disc,
+		OfferResults:    offerResults,
+		PresResults:     presResults,
+		Summary: &ExtractionSummary{
+			Status:                          status,
+			StartedAt:                       startedAt,
+			FinishedAt:                      finishedAt,
+			CredentialOfferCount:            len(offerResults),
+			CredentialOfferSuccessCount:     offerSuccess,
+			PresentationRequestCount:        len(presResults),
+			PresentationRequestSuccessCount: presSuccess,
+			Errors:                          errors,
+		},
 	}
-	return writeJSON(filepath.Join(outDir, "extraction-summary.json"), summary)
+
+	// Convenience aliases for single-success cases
+	if offerSuccess == 1 {
+		for _, r := range offerResults {
+			if r.Status == "ok" && r.IssuerMetadata != nil {
+				c.WellKnown = r.IssuerMetadata
+				break
+			}
+		}
+	}
+	if presSuccess == 1 {
+		for _, r := range presResults {
+			if r.Status == "ok" && r.RequestObject != nil {
+				c.RequestURIOutput, _ = json.Marshal(buildRequestObjectOutput(r))
+				break
+			}
+		}
+	}
+
+	return c
 }
 
-func writeCredentialOffer(dir string, step discovery.Step, r *credoffer.Result) error {
+// WriteJSON writes v as indented JSON to w.
+func WriteJSON(w io.Writer, v any) error {
+	data, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal: %w", err)
+	}
+	data = append(data, '\n')
+	_, err = w.Write(data)
+	return err
+}
+
+// WriteToDir serialises a CollectedResult to a directory tree.
+func WriteToDir(outDir string, c *CollectedResult) error {
+	if err := os.MkdirAll(outDir, 0755); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
+	}
+
+	writeFile(filepath.Join(outDir, "discovered-steps.json"), c.DiscoveredSteps)
+	writeFile(filepath.Join(outDir, "extraction-summary.json"), c.Summary)
+
+	offerDir := filepath.Join(outDir, "credential-offers")
+	for i, r := range c.OfferResults {
+		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
+		writeCredentialOfferDir(filepath.Join(offerDir, subDir), c.DiscoveredSteps.CredentialOfferSteps[i], r)
+	}
+
+	presDir := filepath.Join(outDir, "presentation-requests")
+	for i, r := range c.PresResults {
+		subDir := fmt.Sprintf("%04d-%s", i, sanitizeDirName(r.StepID))
+		writePresentationDir(filepath.Join(presDir, subDir), c.DiscoveredSteps.PresentationRequestSteps[i], r)
+	}
+
+	if c.WellKnown != nil {
+		writeRaw(filepath.Join(outDir, ".well-known.json"), c.WellKnown)
+	}
+	if c.RequestURIOutput != nil {
+		writeRaw(filepath.Join(outDir, "request-uri-output.json"), c.RequestURIOutput)
+	}
+
+	return nil
+}
+
+// WriteAll is a convenience that collects and then writes to a directory in one call.
+func WriteAll(outDir string, disc *discovery.Result, offerResults []*credoffer.Result,
+	presResults []*presentation.Result, startedAt, finishedAt string, strict bool) error {
+	_ = strict
+	c := Collect(disc, offerResults, presResults, startedAt, finishedAt)
+	return WriteToDir(outDir, c)
+}
+
+func writeCredentialOfferDir(dir string, step discovery.Step, r *credoffer.Result) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-
-	writeJSON(filepath.Join(dir, "source-step.json"), step)
-	writeJSON(filepath.Join(dir, "credential-offer-resolution-chain.json"), r)
-
+	writeFile(filepath.Join(dir, "source-step.json"), step)
+	writeFile(filepath.Join(dir, "credential-offer-resolution-chain.json"), r)
 	if r.Error != nil {
-		writeJSON(filepath.Join(dir, "error.json"), r.Error)
+		writeFile(filepath.Join(dir, "error.json"), r.Error)
 		return nil
 	}
-
 	if r.DeeplinkURI != "" {
 		os.WriteFile(filepath.Join(dir, "credential-offer-deeplink.txt"), []byte(r.DeeplinkURI), 0644)
 	}
@@ -145,38 +181,32 @@ func writeCredentialOffer(dir string, step discovery.Step, r *credoffer.Result) 
 		writeRaw(filepath.Join(dir, "well-known.json"), r.IssuerMetadata)
 	}
 	if r.IssuerMetadataFetch != nil {
-		writeJSON(filepath.Join(dir, "issuer-metadata-fetch.json"), r.IssuerMetadataFetch)
+		writeFile(filepath.Join(dir, "issuer-metadata-fetch.json"), r.IssuerMetadataFetch)
 	}
-
 	return nil
 }
 
-func writePresentationRequest(dir string, step discovery.Step, r *presentation.Result) error {
+func writePresentationDir(dir string, step discovery.Step, r *presentation.Result) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-
-	writeJSON(filepath.Join(dir, "source-step.json"), step)
-
+	writeFile(filepath.Join(dir, "source-step.json"), step)
 	if r.Error != nil {
-		writeJSON(filepath.Join(dir, "error.json"), r.Error)
+		writeFile(filepath.Join(dir, "error.json"), r.Error)
 		return nil
 	}
-
 	if r.DeeplinkURI != "" {
 		os.WriteFile(filepath.Join(dir, "presentation-deeplink.txt"), []byte(r.DeeplinkURI), 0644)
 	}
 	if r.RequestURIFetch != nil {
-		writeJSON(filepath.Join(dir, "request-uri-fetch.json"), r.RequestURIFetch)
+		writeFile(filepath.Join(dir, "request-uri-fetch.json"), r.RequestURIFetch)
 	}
 	if r.RequestURIRaw != "" {
 		os.WriteFile(filepath.Join(dir, "request-uri-raw.jwt"), []byte(r.RequestURIRaw), 0644)
 	}
 	if r.RequestObject != nil {
-		output := buildRequestObjectOutput(r)
-		writeJSON(filepath.Join(dir, "request-uri-output.json"), output)
+		writeFile(filepath.Join(dir, "request-uri-output.json"), buildRequestObjectOutput(r))
 	}
-
 	return nil
 }
 
@@ -208,24 +238,24 @@ func sanitizeDirName(s string) string {
 	return string(result)
 }
 
-func writeJSON(path string, v any) error {
+func writeFile(path string, v any) {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return fmt.Errorf("marshal %s: %w", path, err)
+		return
 	}
 	data = append(data, '\n')
-	return os.WriteFile(path, data, 0644)
+	os.WriteFile(path, data, 0644)
 }
 
-func writeRaw(path string, data json.RawMessage) error {
-	// Pretty-print if it's valid JSON
+func writeRaw(path string, data json.RawMessage) {
 	var pretty any
 	if err := json.Unmarshal(data, &pretty); err == nil {
 		formatted, err := json.MarshalIndent(pretty, "", "  ")
 		if err == nil {
 			formatted = append(formatted, '\n')
-			return os.WriteFile(path, formatted, 0644)
+			os.WriteFile(path, formatted, 0644)
+			return
 		}
 	}
-	return os.WriteFile(path, data, 0644)
+	os.WriteFile(path, data, 0644)
 }

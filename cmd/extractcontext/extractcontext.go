@@ -2,11 +2,12 @@
 package extractcontext
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,11 +18,22 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
 )
 
-// Run executes the extract-context command.
+// Options configures an extraction run.
+type Options struct {
+	CredimiBaseURL string
+	Parallelism    int
+	Strict         bool
+	IDEncoding     string
+	MaxDepth       int
+	PostStrategy   string
+	Timeout        time.Duration
+}
+
+// Run executes the extract-context command from CLI args.
 func Run(args []string) error {
 	fs := flag.NewFlagSet("extract-context", flag.ExitOnError)
 
-	temporalInput := fs.String("temporal-input", "", "Path to the pipeline/workflow input JSON (required)")
+	temporalInput := fs.String("temporal-input", "", "Path to the pipeline/workflow input JSON (use '-' for stdin)")
 	temporalOutput := fs.String("temporal-output", "", "Path to Temporal/pipeline output JSON (optional, diagnostic only)")
 	credimiBaseURL := fs.String("credimi-base-url", "https://credimi.io", "Credimi base URL")
 	outDir := fs.String("out-dir", "", "Output directory (required)")
@@ -36,11 +48,9 @@ func Run(args []string) error {
 		return err
 	}
 
-	// Setup telemetry
 	shutdownTelemetry := telemetry.Setup()
 	defer shutdownTelemetry()
 
-	// Validate required flags
 	if *temporalInput == "" {
 		return fmt.Errorf("--temporal-input is required")
 	}
@@ -48,45 +58,80 @@ func Run(args []string) error {
 		return fmt.Errorf("--out-dir is required")
 	}
 
+	// Open input (file or stdin)
+	var reader io.Reader
+	if *temporalInput == "-" {
+		reader = os.Stdin
+	} else {
+		f, err := os.Open(*temporalInput)
+		if err != nil {
+			return fmt.Errorf("open temporal input: %w", err)
+		}
+		defer f.Close()
+		reader = f
+	}
+
+	opts := Options{
+		CredimiBaseURL: *credimiBaseURL,
+		Parallelism:    *parallelism,
+		Strict:         *strict,
+		IDEncoding:     *idEncoding,
+		MaxDepth:       *maxDepth,
+		PostStrategy:   *postStrategy,
+		Timeout:        *timeout,
+	}
+
 	startedAt := time.Now().UTC().Format(time.RFC3339)
 
-	// Read input file
-	input, err := os.ReadFile(*temporalInput)
+	client := &http.Client{Timeout: opts.Timeout}
+
+	collected, err := RunExtraction(reader, client, opts)
 	if err != nil {
-		return fmt.Errorf("read temporal input: %w", err)
+		return err
 	}
 
-	if !json.Valid(input) {
-		return fmt.Errorf("temporal input is not valid JSON")
+	collected.Summary.StartedAt = startedAt
+	collected.Summary.FinishedAt = time.Now().UTC().Format(time.RFC3339)
+
+	if err := output.WriteToDir(*outDir, collected); err != nil {
+		return fmt.Errorf("write output: %w", err)
 	}
 
-	// Discover steps
-	disc, err := discovery.Discover(input)
+	if opts.Strict && collected.Summary.Status != "ok" {
+		return fmt.Errorf("extraction errors occurred in strict mode")
+	}
+
+	_ = temporalOutput
+	return nil
+}
+
+// RunExtraction runs the full extraction pipeline from an io.Reader.
+// It returns an in-memory CollectedResult without touching the filesystem —
+// suitable for embedding in Temporal activities, HTTP handlers, or tests.
+func RunExtraction(r io.Reader, client *http.Client, opts Options) (*output.CollectedResult, error) {
+	// Peek at the first bytes to check if it looks like a struct or raw JSON
+	disc, err := discovery.DiscoverReader(r)
 	if err != nil {
-		return fmt.Errorf("step discovery: %w", err)
+		return nil, fmt.Errorf("step discovery: %w", err)
 	}
-
-	// Create HTTP client
-	client := &http.Client{Timeout: *timeout}
 
 	// Resolve credential offers in parallel
 	offerResults := make([]*credoffer.Result, len(disc.CredentialOfferSteps))
-	resolveOffers(client, *credimiBaseURL, disc.CredentialOfferSteps, *idEncoding, *maxDepth, *parallelism, offerResults)
+	resolveOffers(client, opts.CredimiBaseURL, disc.CredentialOfferSteps, opts.IDEncoding, opts.MaxDepth, opts.Parallelism, offerResults)
 
 	// Resolve presentation requests in parallel
 	presResults := make([]*presentation.Result, len(disc.PresentationRequestSteps))
-	resolvePresentations(client, *credimiBaseURL, disc.PresentationRequestSteps, *idEncoding, *postStrategy, *timeout, *parallelism, presResults)
+	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Timeout, opts.Parallelism, presResults)
 
-	// For successful credential offers, fetch issuer metadata
-	for i, r := range offerResults {
+	// Fetch issuer metadata for successful credential offers
+	for _, r := range offerResults {
 		if r.Status == "ok" && r.CredentialOffer != nil {
 			meta, fetch, err := credoffer.FetchIssuerMetadata(client, r.CredentialOffer)
 			if err != nil {
-				// Non-fatal: record but continue
 				r.IssuerMetadataFetch = fetch
-				if *strict {
+				if opts.Strict {
 					r.Status = "error"
-					r.Error = newCredentialError("issuer_metadata_fetch_failed", err.Error(),
+					r.Error = credoffer.NewError("issuer_metadata_fetch_failed", err.Error(),
 						"Could not fetch issuer metadata.", "", 0, true)
 				}
 			} else {
@@ -94,35 +139,55 @@ func Run(args []string) error {
 				r.IssuerMetadataFetch = fetch
 			}
 		}
-		_ = i
 	}
 
-	finishedAt := time.Now().UTC().Format(time.RFC3339)
+	return output.Collect(disc, offerResults, presResults, "", ""), nil
+}
 
-	// Write output
-	if err := output.WriteAll(*outDir, disc, offerResults, presResults, startedAt, finishedAt, *strict); err != nil {
-		return fmt.Errorf("write output: %w", err)
+// RunExtractionBytes is like RunExtraction but accepts raw JSON bytes or a pre-parsed struct.
+// Pass either raw JSON bytes or nil to skip discovery and use the provided steps directly.
+func RunExtractionBytes(input []byte, client *http.Client, opts Options) (*output.CollectedResult, error) {
+	return RunExtraction(strings.NewReader(string(input)), client, opts)
+}
+
+// RunExtractionSteps runs the pipeline from pre-discovered steps and raw JSON input.
+// The raw input is used for discovery metadata; steps drive the extraction.
+// Use this when you already have parsed step data (e.g. from a Temporal workflow payload).
+func RunExtractionSteps(steps []discovery.Step, client *http.Client, opts Options) (*output.CollectedResult, error) {
+	disc := &discovery.Result{}
+	for _, s := range steps {
+		switch s.Use {
+		case "credential-offer":
+			disc.CredentialOfferSteps = append(disc.CredentialOfferSteps, s)
+		case "use-case-verification-deeplink":
+			disc.PresentationRequestSteps = append(disc.PresentationRequestSteps, s)
+		}
 	}
 
-	// Check for strict mode failures
-	hasErrors := false
+	offerResults := make([]*credoffer.Result, len(disc.CredentialOfferSteps))
+	resolveOffers(client, opts.CredimiBaseURL, disc.CredentialOfferSteps, opts.IDEncoding, opts.MaxDepth, opts.Parallelism, offerResults)
+
+	presResults := make([]*presentation.Result, len(disc.PresentationRequestSteps))
+	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Timeout, opts.Parallelism, presResults)
+
 	for _, r := range offerResults {
-		if r.Error != nil {
-			hasErrors = true
-		}
-	}
-	for _, r := range presResults {
-		if r.Error != nil {
-			hasErrors = true
+		if r.Status == "ok" && r.CredentialOffer != nil {
+			meta, fetch, err := credoffer.FetchIssuerMetadata(client, r.CredentialOffer)
+			if err != nil {
+				r.IssuerMetadataFetch = fetch
+				if opts.Strict {
+					r.Status = "error"
+					r.Error = credoffer.NewError("issuer_metadata_fetch_failed", err.Error(),
+						"Could not fetch issuer metadata.", "", 0, true)
+				}
+			} else {
+				r.IssuerMetadata = meta
+				r.IssuerMetadataFetch = fetch
+			}
 		}
 	}
 
-	if *strict && hasErrors {
-		return fmt.Errorf("extraction errors occurred in strict mode")
-	}
-
-	_ = temporalOutput // For future diagnostic use
-	return nil
+	return output.Collect(disc, offerResults, presResults, "", ""), nil
 }
 
 func resolveOffers(client *http.Client, baseURL string, steps []discovery.Step, idEncoding string, maxDepth, parallelism int, results []*credoffer.Result) {
@@ -161,8 +226,4 @@ func resolvePresentations(client *http.Client, baseURL string, steps []discovery
 		}(i, step)
 	}
 	wg.Wait()
-}
-
-func newCredentialError(code, message, humanMessage, url string, httpStatus int, recoverable bool) *credoffer.ExtractionError {
-	return credoffer.NewError(code, message, humanMessage, url, httpStatus, recoverable)
 }
