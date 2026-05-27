@@ -1,0 +1,16 @@
+{
+  "source_zip": "Temporal-input-output.zip",
+  "files": [
+    "AgeVerification/input.json",
+    "AgeVerification/output.json",
+    "EUDI-iss-ver/input.json",
+    "EUDI-iss-ver/output.json",
+    "EUDI-iss2/input.json",
+    "EUDI-iss2/output.json",
+    "Multipaz/input.json",
+    "Multipaz/output.json",
+    "Talao-iss-cred13/input.json",
+    "Talao-iss-cred13/output.json"
+  ],
+  "note": "This fixture was provided by the user and must be used by Codex to understand and test the first extract-context feature."
+}

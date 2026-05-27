@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  test:
+    cmds:
+      - go test ./...
+
+  lint:
+    cmds:
+      - task lint:design
+
+  lint:design:
+    cmds:
+      - if [ -f DESIGN.md ]; then npx --yes @google/design.md lint DESIGN.md; fi
+
+  run:
+    cmds:
+      - go run .
+
+  build:
+    cmds:
+      - go build -o bin/eudi-conformance-evidence .
+
+  fmt:
+    cmds:
+      - go fmt ./...
+      - go vet ./...
