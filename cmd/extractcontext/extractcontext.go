@@ -67,7 +67,7 @@ func Run(args []string) error {
 		if err != nil {
 			return fmt.Errorf("open temporal input: %w", err)
 		}
-		defer f.Close()
+		defer f.Close() //nolint:errcheck
 		reader = f
 	}
 

@@ -124,7 +124,7 @@ func TestRunMissingInput(t *testing.T) {
 func TestRunInvalidJSON(t *testing.T) {
 	dir := t.TempDir()
 	inputPath := filepath.Join(dir, "input.json")
-	os.WriteFile(inputPath, []byte(`not valid json`), 0644)
+	_ = os.WriteFile(inputPath, []byte(`not valid json`), 0644)
 
 	err := Run([]string{"--temporal-input", inputPath, "--out-dir", dir})
 	if err == nil {
@@ -143,7 +143,7 @@ func TestRunWithStrict(t *testing.T) {
 	inputDir := t.TempDir()
 	inputPath := filepath.Join(inputDir, "input.json")
 	input := `{"workflow_definition":{"steps":[{"id":"co-001","use":"credential-offer","with":{"credential_id":"test-id"}}]}}`
-	os.WriteFile(inputPath, []byte(input), 0644)
+	_ = os.WriteFile(inputPath, []byte(input), 0644)
 
 	// Server that always fails
 	failServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
