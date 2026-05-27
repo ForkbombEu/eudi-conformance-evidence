@@ -8,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
 )
 
 func TestRunWithMockCredimi(t *testing.T) {
@@ -39,12 +42,12 @@ func TestRunWithMockCredimi(t *testing.T) {
 	credimiServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/credential/deeplink":
-			w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
 		case "/api/verification/deeplink":
-			w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(credimiServer.URL+"/request.jwt") + `&request_uri_method=get`))
+			_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(credimiServer.URL+"/request.jwt") + `&request_uri_method=get`))
 		case "/request.jwt":
 			w.Header().Set("Content-Type", "application/jwt")
-			w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
+			_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
 		default:
 			w.WriteHeader(404)
 		}
@@ -121,7 +124,7 @@ func TestRunMissingInput(t *testing.T) {
 func TestRunInvalidJSON(t *testing.T) {
 	dir := t.TempDir()
 	inputPath := filepath.Join(dir, "input.json")
-	os.WriteFile(inputPath, []byte(`not valid json`), 0644)
+	_ = os.WriteFile(inputPath, []byte(`not valid json`), 0644)
 
 	err := Run([]string{"--temporal-input", inputPath, "--out-dir", dir})
 	if err == nil {
@@ -140,7 +143,7 @@ func TestRunWithStrict(t *testing.T) {
 	inputDir := t.TempDir()
 	inputPath := filepath.Join(inputDir, "input.json")
 	input := `{"workflow_definition":{"steps":[{"id":"co-001","use":"credential-offer","with":{"credential_id":"test-id"}}]}}`
-	os.WriteFile(inputPath, []byte(input), 0644)
+	_ = os.WriteFile(inputPath, []byte(input), 0644)
 
 	// Server that always fails
 	failServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +162,80 @@ func TestRunWithStrict(t *testing.T) {
 	})
 	if err == nil {
 		t.Error("expected error in strict mode with failed extraction")
+	}
+}
+
+func TestRunExtractionBytes(t *testing.T) {
+	// Mock Credimi that returns a direct credential offer
+	var server *httptest.Server //nolint:staticcheck
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/credential/deeplink":
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+		case "/api/verification/deeplink":
+			_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(server.URL+"/request.jwt") + `&request_uri_method=get`))
+		case "/request.jwt":
+			w.Header().Set("Content-Type", "application/jwt")
+			_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2ln"))
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	input := `{"workflow_definition":{"steps":[
+		{"id":"co-001","use":"credential-offer","with":{"credential_id":"test-id"}},
+		{"id":"vp-001","use":"use-case-verification-deeplink","with":{"use_case_id":"test-case"}}
+	]}}`
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	collected, err := RunExtractionBytes([]byte(input), client, Options{
+		CredimiBaseURL: server.URL,
+		Parallelism:    1,
+		IDEncoding:     "raw",
+		MaxDepth:       5,
+		PostStrategy:   "auto",
+		Timeout:        5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("RunExtractionBytes failed: %v", err)
+	}
+	if collected.Summary.CredentialOfferCount != 1 {
+		t.Errorf("expected 1 offer, got %d", collected.Summary.CredentialOfferCount)
+	}
+	if collected.Summary.PresentationRequestCount != 1 {
+		t.Errorf("expected 1 request, got %d", collected.Summary.PresentationRequestCount)
+	}
+}
+
+func TestRunExtractionSteps(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/credential/deeplink":
+			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	steps := []discovery.Step{
+		{PipelineOrder: 0, StepID: "co-001", Use: "credential-offer", CredentialID: "test-id"},
+	}
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	collected, err := RunExtractionSteps(steps, client, Options{
+		CredimiBaseURL: server.URL,
+		Parallelism:    1,
+		IDEncoding:     "raw",
+		MaxDepth:       5,
+		Timeout:        5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("RunExtractionSteps failed: %v", err)
+	}
+	if collected.Summary.CredentialOfferCount != 1 {
+		t.Errorf("expected 1 offer, got %d", collected.Summary.CredentialOfferCount)
 	}
 }
 

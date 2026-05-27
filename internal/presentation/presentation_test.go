@@ -15,12 +15,12 @@ func TestResolvePresentationRequest(t *testing.T) {
 	// Mock request_uri server that returns a JWT
 	requestURIServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/jwt")
-		w.Write([]byte("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiaXNzIjoiaXNzdWVyIn0.c2ln"))
+		_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiaXNzIjoiaXNzdWVyIn0.c2ln"))
 	}))
 	defer requestURIServer.Close()
 
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=get&client_id=test-client`))
+		_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=get&client_id=test-client`))
 	}))
 	defer credimiServer.Close()
 
@@ -51,19 +51,19 @@ func TestResolvePresentationRequestPOSTAuto(t *testing.T) {
 			n, _ := r.Body.Read(body)
 			if strings.Contains(string(body[:n]), "wallet_nonce") {
 				w.WriteHeader(200)
-				w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.sig"))
+				_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.sig"))
 				return
 			}
 			w.WriteHeader(400)
 			return
 		}
 		w.WriteHeader(200)
-		w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.sig"))
+		_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.sig"))
 	}))
 	defer requestURIServer.Close()
 
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=post`))
+		_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=post`))
 	}))
 	defer credimiServer.Close()
 
@@ -80,7 +80,7 @@ func TestResolvePresentationRequestPOSTAuto(t *testing.T) {
 
 func TestResolvePresentationRequestMissingRequestURI(t *testing.T) {
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`haip-vp://?client_id=test`))
+		_, _ = w.Write([]byte(`haip-vp://?client_id=test`))
 	}))
 	defer credimiServer.Close()
 
@@ -114,7 +114,7 @@ func TestPOSTStrategiesAllTry(t *testing.T) {
 	defer requestURIServer.Close()
 
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=post`))
+		_, _ = w.Write([]byte(`haip-vp://?request_uri=` + url.QueryEscape(requestURIServer.URL) + `&request_uri_method=post`))
 	}))
 	defer credimiServer.Close()
 
