@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/jwt"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/jwt"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/telemetry"
 )
 
 // RequestURIFetch records how the request_uri was fetched.

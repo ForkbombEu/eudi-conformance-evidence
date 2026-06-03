@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/credoffer"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/output"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/output"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/telemetry"
 )
 
 // Options configures an extraction run.

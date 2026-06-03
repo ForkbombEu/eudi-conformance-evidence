@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
 )
 
 func TestRunWithMockCredimi(t *testing.T) {

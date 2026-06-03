@@ -64,3 +64,9 @@ If unsure:
 - location: repository root
 - evidence: `Taskfile.yml` defines `lint` and `lint:design`, but no formatting task or formatter is defined.
 - rationale: `PURIA.md` requires formatting through a repository-defined formatter before commits.
+
+- id: hitl-0003
+- observation: Go toolchain version requirements are inconsistent across repository doctrine and validation.
+- location: `PURIA.md`, `mise.toml`, `go.mod`, GitHub Actions vulnerability check
+- evidence: `PURIA.md` requires `go = "1.26.2"` in `mise.toml`; `mise.toml` pins `go = "1.26.2"`; `go.mod` is the CI-selected Go version; govulncheck reports standard-library vulnerabilities fixed in Go `1.26.4`.
+- rationale: Toolchain version mismatches affect CI, local validation, and security scanning.
