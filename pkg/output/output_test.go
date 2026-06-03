@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/credoffer"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/jwt"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/jwt"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 )
 
 func TestWriteAll(t *testing.T) {

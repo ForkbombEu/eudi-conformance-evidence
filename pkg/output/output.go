@@ -8,9 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/credoffer"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
-	"github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 )
 
 // ExtractionSummary summarises an extraction run.

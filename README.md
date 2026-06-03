@@ -131,12 +131,12 @@ Every HTTP call — Credimi deeplink fetches, credential offer URI resolution, i
 
 ## Library usage
 
-All packages under `internal/` are importable (replace `internal` with the public path when stabilized).
+Packages under `pkg/` are importable by downstream Go modules.
 
 ### Step discovery
 
 ```go
-import "github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
+import "github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
 
 input, _ := os.ReadFile("pipeline-input.json")
 result, err := discovery.Discover(input)
@@ -149,7 +149,7 @@ result, err := discovery.Discover(input)
 ```go
 import (
     "net/http"
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/credoffer"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
 )
 
 client := &http.Client{Timeout: 30 * time.Second}
@@ -167,7 +167,7 @@ meta, fetch, err := credoffer.FetchIssuerMetadata(client, result.CredentialOffer
 ### Presentation request resolution
 
 ```go
-import "github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
+import "github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 
 result := presentation.Resolve(client, "https://credimi.io", "/org/verifier/use-case", "auto", "auto", 30*time.Second)
 // result.RequestURI — the extracted request_uri
@@ -180,7 +180,7 @@ result := presentation.Resolve(client, "https://credimi.io", "/org/verifier/use-
 ### JWT/JWS decoding (no verification)
 
 ```go
-import "github.com/forkbombeu/eudi-conformance-evidence/internal/jwt"
+import "github.com/forkbombeu/eudi-conformance-evidence/pkg/jwt"
 
 token, err := jwt.Decode(rawJWT)
 // token.Header — json.RawMessage
@@ -203,11 +203,11 @@ import (
     "os"
     "time"
 
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/credoffer"
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/discovery"
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/output"
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/presentation"
-    "github.com/forkbombeu/eudi-conformance-evidence/internal/telemetry"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/output"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
+    "github.com/forkbombeu/eudi-conformance-evidence/pkg/telemetry"
 )
 
 func main() {
