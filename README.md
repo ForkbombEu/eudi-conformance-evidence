@@ -64,6 +64,23 @@ task build
 
 ## CLI usage
 
+### Web interface
+
+Start the two-page browser interface:
+
+```bash
+eudi-conformance-evidence web --addr :8080
+```
+
+Open `http://localhost:8080`. The launcher accepts:
+
+- a raw credential offer and returns issuer `.well-known` metadata
+- a Credimi Hub credential URL and returns issuer `.well-known` metadata
+- a raw presentation request and returns its `dcql_query`
+- a Credimi Hub use-case verification URL and returns its `dcql_query`
+
+The web server performs protocol requests on behalf of the browser. Its production HTTP client rejects loopback, private, link-local, and multicast destinations.
+
 ### extract-context
 
 ```bash

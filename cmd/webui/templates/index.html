@@ -1,0 +1,61 @@
+{{define "index.html"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand-lockup" href="/"><span class="brand-mark">EE</span><span>EUDI Evidence Extractor</span></a>
+      <span class="status-chip status-wallet">protocol tools</span>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">EUDI protocol context</p>
+        <h1>Extract the evidence behind the link.</h1>
+        <p>Resolve issuer metadata and DCQL from raw protocol requests or Credimi Hub resources. Each extraction opens a dedicated result page.</p>
+      </div>
+    </section>
+    <section class="page-content container">
+      <div class="section-header"><h2>Choose an extractor</h2><span class="count-chip">4</span></div>
+      <div class="extractor-grid">
+        <form class="card extractor-card" action="/extract" method="post" target="_blank">
+          <div><span class="badge badge-issuer">issuer</span><h3>Credential offer</h3><p>Paste an OpenID credential offer URI or credential offer JSON. The result is the issuer <code>.well-known</code> document.</p></div>
+          <label for="credential-offer">Credential offer</label>
+          <textarea id="credential-offer" name="input" required placeholder="openid-credential-offer://?credential_offer=..."></textarea>
+          <input type="hidden" name="kind" value="credential-offer">
+          <button class="btn btn-primary btn-lg" type="submit">Extract .well-known</button>
+        </form>
+        <form class="card extractor-card" action="/extract" method="post" target="_blank">
+          <div><span class="badge badge-credential">credimi</span><h3>Credimi credential</h3><p>Paste a Credimi Hub credential URL. The server requests a fresh deeplink and resolves its issuer metadata.</p></div>
+          <label for="credimi-credential">Credimi credential URL</label>
+          <textarea id="credimi-credential" name="input" required placeholder="https://credimi.io/hub/credentials/organization/integration/credential"></textarea>
+          <input type="hidden" name="kind" value="credimi-credential">
+          <button class="btn btn-primary btn-lg" type="submit">Extract .well-known</button>
+        </form>
+        <form class="card extractor-card" action="/extract" method="post" target="_blank">
+          <div><span class="badge badge-verifier">verifier</span><h3>Presentation request</h3><p>Paste a request URI, compact JWT, or JSON request object. The result contains its <code>dcql_query</code>.</p></div>
+          <label for="presentation-request">Presentation request</label>
+          <textarea id="presentation-request" name="input" required placeholder="openid4vp://authorize?request_uri=..."></textarea>
+          <input type="hidden" name="kind" value="presentation-request">
+          <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
+        </form>
+        <form class="card extractor-card" action="/extract" method="post" target="_blank">
+          <div><span class="badge badge-wallet">credimi</span><h3>Credimi verification</h3><p>Paste a Credimi Hub use-case verification URL. The server requests a fresh presentation deeplink and extracts DCQL.</p></div>
+          <label for="credimi-verification">Credimi verification URL</label>
+          <textarea id="credimi-verification" name="input" required placeholder="https://credimi.io/hub/use_cases_verifications/organization/integration/use-case"></textarea>
+          <input type="hidden" name="kind" value="credimi-verification">
+          <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><div class="footer-content"><div class="footer-brand"><span class="brand-mark footer-mark">EE</span><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div><a class="footer-link fork-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence">Fork me on GitHub</a></div></div></footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>{{end}}

@@ -1,0 +1,40 @@
+{{define "result.html"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand-lockup" href="/"><span class="brand-mark">EE</span><span>EUDI Evidence Extractor</span></a>
+      <span class="status-chip {{if .Error}}status-error{{else}}status-verifier{{end}}">{{.StatusText}}</span>
+    </div>
+  </header>
+  <main class="page-content result-page container">
+    <section class="result-header">
+      <div><p class="eyebrow">{{if .Source}}{{.Source}}{{else}}Extraction result{{end}}</p><h1>{{if .Error}}Extraction failed{{else}}Protocol context resolved{{end}}</h1></div>
+      <a class="btn btn-outline btn-md" href="/">New extraction</a>
+    </section>
+    {{if .Error}}
+      <section class="card error-panel"><h2>Unable to extract</h2><p>{{.Error}}</p>{{if .Input}}<div class="source-box"><span>Submitted input</span><code>{{.Input}}</code></div>{{end}}</section>
+    {{else}}
+      <section class="result-layout">
+        <article class="card output-panel">
+          <div class="section-header compact"><h2>{{if eq .Kind "credential-offer"}}Issuer metadata{{else if eq .Kind "credimi-credential"}}Issuer metadata{{else}}DCQL query{{end}}</h2><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="output-json">Copy JSON</button></div>
+          <pre id="output-json">{{.Output}}</pre>
+        </article>
+        <aside class="card details-panel">
+          <div class="section-header compact"><h2>Resolution details</h2></div>
+          <div class="source-box"><span>Submitted input</span><code>{{.Input}}</code></div>
+          {{if .Details}}<pre>{{.Details}}</pre>{{end}}
+        </aside>
+      </section>
+    {{end}}
+  </main>
+  <footer class="footer"><div class="footer-inner"><div class="footer-content"><div class="footer-brand"><span class="brand-mark footer-mark">EE</span><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div><a class="footer-link fork-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence">Fork me on GitHub</a></div></div></footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>{{end}}
