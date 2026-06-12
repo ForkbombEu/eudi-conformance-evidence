@@ -99,35 +99,39 @@ func (s *server) index(w http.ResponseWriter, r *http.Request) {
 func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 	if err := r.ParseForm(); err != nil {
-		s.renderError(w, http.StatusBadRequest, "The submitted form is invalid.", "")
+		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: "EUDI Context Extractor", Error: "The submitted form is invalid."})
 		return
 	}
 
 	kind := strings.TrimSpace(r.FormValue("kind"))
 	input := strings.TrimSpace(r.FormValue("input"))
 	if input == "" {
-		s.renderError(w, http.StatusBadRequest, "An extraction input is required.", kind)
+		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: "EUDI Context Extractor", Kind: kind, Error: "An extraction input is required."})
 		return
 	}
 
-	data := pageData{Title: "Extraction Result", Kind: kind, Input: input, StatusText: "resolved"}
+	data := pageData{Title: "EUDI Context Extractor", Kind: kind, Input: input, StatusText: "resolved"}
 	var output any
 	var details any
 	var err error
 
 	switch kind {
-	case "credential-offer":
-		data.Source = "Credential offer"
-		output, details, err = s.extractCredentialOffer(input)
-	case "credimi-credential":
-		data.Source = "Credimi credential"
-		output, details, err = s.extractCredimiCredential(input)
-	case "presentation-request":
-		data.Source = "Presentation request"
-		output, details, err = s.extractPresentationRequest(input)
-	case "credimi-verification":
-		data.Source = "Credimi use-case verification"
-		output, details, err = s.extractCredimiVerification(input)
+	case "issuer-metadata":
+		if isCredimiHubURL(input, "credentials") {
+			data.Source = "Credimi credential"
+			output, details, err = s.extractCredimiCredential(input)
+		} else {
+			data.Source = "Credential offer"
+			output, details, err = s.extractCredentialOffer(input)
+		}
+	case "presentation-metadata":
+		if isCredimiHubURL(input, "use_cases_verifications") {
+			data.Source = "Credimi use-case verification"
+			output, details, err = s.extractCredimiVerification(input)
+		} else {
+			data.Source = "Presentation request"
+			output, details, err = s.extractPresentationRequest(input)
+		}
 	default:
 		err = fmt.Errorf("unknown extraction type %q", kind)
 	}
@@ -135,17 +139,19 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		data.Error = err.Error()
 		data.StatusText = "failed"
-		s.render(w, http.StatusUnprocessableEntity, "result.html", data)
+		s.render(w, http.StatusUnprocessableEntity, "index.html", data)
 		return
 	}
 
 	data.Output, err = prettyJSON(output)
 	if err != nil {
-		s.renderError(w, http.StatusInternalServerError, err.Error(), kind)
+		data.Error = err.Error()
+		data.StatusText = "failed"
+		s.render(w, http.StatusInternalServerError, "index.html", data)
 		return
 	}
 	data.Details, _ = prettyJSON(details)
-	s.render(w, http.StatusOK, "result.html", data)
+	s.render(w, http.StatusOK, "index.html", data)
 }
 
 func (s *server) extractCredentialOffer(input string) (any, any, error) {
@@ -349,6 +355,14 @@ func parseCredimiHubURL(input, collection string) (string, string, error) {
 	return parsed.Scheme + "://" + parsed.Host, "/" + decodedID, nil
 }
 
+func isCredimiHubURL(input, collection string) bool {
+	parsed, err := url.Parse(strings.TrimSpace(input))
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return false
+	}
+	return strings.HasPrefix(parsed.Path, "/hub/"+collection+"/")
+}
+
 func findDCQL(payload json.RawMessage) (any, error) {
 	var value any
 	if err := json.Unmarshal(payload, &value); err != nil {
@@ -418,10 +432,6 @@ func presentationError(err *presentation.ExtractionError) error {
 		return errors.New("presentation extraction failed")
 	}
 	return errors.New(err.Error.Message)
-}
-
-func (s *server) renderError(w http.ResponseWriter, status int, message, kind string) {
-	s.render(w, status, "result.html", pageData{Title: "Extraction Error", Kind: kind, Error: message, StatusText: "failed"})
 }
 
 func (s *server) render(w http.ResponseWriter, status int, name string, data pageData) {

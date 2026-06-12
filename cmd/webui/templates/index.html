@@ -16,40 +16,49 @@
   <main>
     <section class="hero">
       <div class="hero-inner">
-        <p class="eyebrow">EUDI protocol context</p>
-        <h1>Extract the evidence behind the link.</h1>
-        <p>Resolve issuer metadata and DCQL from raw protocol requests or Credimi Hub resources. Each extraction opens a dedicated result page.</p>
+        <h1>Extract .well-known and DCQL</h1>
+        <p>from credential offers and presentation request</p>
       </div>
     </section>
     <section class="page-content container">
-      <div class="section-header"><h2>Choose an extractor</h2><span class="count-chip">4</span></div>
+      <div class="section-header"><h2>Choose an extractor</h2><span class="count-chip">2</span></div>
       <div class="extractor-grid">
-        <form class="card extractor-card" action="/extract" method="post" target="_blank">
-          <div><span class="badge badge-issuer">issuer</span><h3>Credential offer</h3><p>Paste an OpenID credential offer URI or credential offer JSON. The result is the issuer <code>.well-known</code> document.</p></div>
-          <label for="credential-offer">Credential offer</label>
-          <textarea id="credential-offer" name="input" required placeholder="openid-credential-offer://?credential_offer=..."></textarea>
-          <input type="hidden" name="kind" value="credential-offer">
+        <form class="card extractor-card" action="/extract" method="post">
+          <div><span class="badge badge-issuer">issuer</span><h3>Extract Issuer Metadata (.well-known)</h3><p>Paste a credential offer or a Credimi Hub credential URL.</p></div>
+          <label for="issuer-metadata">Credential offer or Credimi credential</label>
+          <textarea id="issuer-metadata" name="input" required placeholder="openid-credential-offer://?credential_offer=... or https://credimi.io/hub/credentials/...">{{if eq .Kind "issuer-metadata"}}{{.Input}}{{end}}</textarea>
+          <input type="hidden" name="kind" value="issuer-metadata">
+          {{if eq .Kind "issuer-metadata"}}
+            <details class="result-disclosure {{if .Error}}result-error{{end}}" open>
+              <summary>{{if .Error}}Extraction failed{{else}}Issuer metadata extracted{{end}}</summary>
+              {{if .Error}}
+                <p class="result-message">{{.Error}}</p>
+              {{else}}
+                <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-output">Copy JSON</button></div>
+                <pre id="issuer-output">{{.Output}}</pre>
+                {{if .Details}}<details class="resolution-details"><summary>Resolution details</summary><pre>{{.Details}}</pre></details>{{end}}
+              {{end}}
+            </details>
+          {{end}}
           <button class="btn btn-primary btn-lg" type="submit">Extract .well-known</button>
         </form>
-        <form class="card extractor-card" action="/extract" method="post" target="_blank">
-          <div><span class="badge badge-credential">credimi</span><h3>Credimi credential</h3><p>Paste a Credimi Hub credential URL. The server requests a fresh deeplink and resolves its issuer metadata.</p></div>
-          <label for="credimi-credential">Credimi credential URL</label>
-          <textarea id="credimi-credential" name="input" required placeholder="https://credimi.io/hub/credentials/organization/integration/credential"></textarea>
-          <input type="hidden" name="kind" value="credimi-credential">
-          <button class="btn btn-primary btn-lg" type="submit">Extract .well-known</button>
-        </form>
-        <form class="card extractor-card" action="/extract" method="post" target="_blank">
-          <div><span class="badge badge-verifier">verifier</span><h3>Presentation request</h3><p>Paste a request URI, compact JWT, or JSON request object. The result contains its <code>dcql_query</code>.</p></div>
-          <label for="presentation-request">Presentation request</label>
-          <textarea id="presentation-request" name="input" required placeholder="openid4vp://authorize?request_uri=..."></textarea>
-          <input type="hidden" name="kind" value="presentation-request">
-          <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
-        </form>
-        <form class="card extractor-card" action="/extract" method="post" target="_blank">
-          <div><span class="badge badge-wallet">credimi</span><h3>Credimi verification</h3><p>Paste a Credimi Hub use-case verification URL. The server requests a fresh presentation deeplink and extracts DCQL.</p></div>
-          <label for="credimi-verification">Credimi verification URL</label>
-          <textarea id="credimi-verification" name="input" required placeholder="https://credimi.io/hub/use_cases_verifications/organization/integration/use-case"></textarea>
-          <input type="hidden" name="kind" value="credimi-verification">
+        <form class="card extractor-card" action="/extract" method="post">
+          <div><span class="badge badge-verifier">verifier</span><h3>Extract Presentation request metadata (DCQL)</h3><p>Paste a presentation request or a Credimi Hub use-case verification URL.</p></div>
+          <label for="presentation-metadata">Presentation request or Credimi verification</label>
+          <textarea id="presentation-metadata" name="input" required placeholder="openid4vp://authorize?request_uri=... or https://credimi.io/hub/use_cases_verifications/...">{{if eq .Kind "presentation-metadata"}}{{.Input}}{{end}}</textarea>
+          <input type="hidden" name="kind" value="presentation-metadata">
+          {{if eq .Kind "presentation-metadata"}}
+            <details class="result-disclosure {{if .Error}}result-error{{end}}" open>
+              <summary>{{if .Error}}Extraction failed{{else}}DCQL extracted{{end}}</summary>
+              {{if .Error}}
+                <p class="result-message">{{.Error}}</p>
+              {{else}}
+                <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-output">Copy JSON</button></div>
+                <pre id="presentation-output">{{.Output}}</pre>
+                {{if .Details}}<details class="resolution-details"><summary>Resolution details</summary><pre>{{.Details}}</pre></details>{{end}}
+              {{end}}
+            </details>
+          {{end}}
           <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
         </form>
       </div>

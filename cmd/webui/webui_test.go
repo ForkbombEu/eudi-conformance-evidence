@@ -19,8 +19,11 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if index.Code != http.StatusOK {
 		t.Fatalf("index status = %d", index.Code)
 	}
-	if !strings.Contains(index.Body.String(), "Choose an extractor") {
+	if !strings.Contains(index.Body.String(), "Extract .well-known and DCQL") {
 		t.Fatal("index did not contain extractor launcher")
+	}
+	if strings.Count(index.Body.String(), `class="card extractor-card"`) != 2 {
+		t.Fatal("index did not contain exactly two extractor cards")
 	}
 
 	stylesheet := httptest.NewRecorder()
@@ -55,8 +58,9 @@ func TestExtractCredentialOffer(t *testing.T) {
 
 	offer := fmt.Sprintf(`{"credential_issuer":%q}`, issuer.URL)
 	input := "openid-credential-offer://?credential_offer=" + url.QueryEscape(offer)
-	response := postExtraction(t, issuer.Client(), "credential-offer", input)
+	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
+	assertResultContains(t, response, `class="result-disclosure`)
 }
 
 func TestExtractCredimiCredential(t *testing.T) {
@@ -79,13 +83,13 @@ func TestExtractCredimiCredential(t *testing.T) {
 	defer mock.Close()
 
 	input := mock.URL + "/hub/credentials/org/integration/credential"
-	response := postExtraction(t, mock.Client(), "credimi-credential", input)
+	response := postExtraction(t, mock.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
 }
 
 func TestExtractPresentationRequest(t *testing.T) {
 	input := `{"client_id":"verifier","dcql_query":{"credentials":[{"id":"pid"}]}}`
-	response := postExtraction(t, http.DefaultClient, "presentation-request", input)
+	response := postExtraction(t, http.DefaultClient, "presentation-metadata", input)
 	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
 }
@@ -98,7 +102,7 @@ func TestExtractPresentationRequestURI(t *testing.T) {
 	defer requestServer.Close()
 
 	input := "openid4vp://authorize?request_uri=" + url.QueryEscape(requestServer.URL)
-	response := postExtraction(t, requestServer.Client(), "presentation-request", input)
+	response := postExtraction(t, requestServer.Client(), "presentation-metadata", input)
 	assertResultContains(t, response, "pid-from-uri")
 }
 
@@ -121,13 +125,13 @@ func TestExtractCredimiVerification(t *testing.T) {
 	defer mock.Close()
 
 	input := mock.URL + "/hub/use_cases_verifications/org/integration/use-case"
-	response := postExtraction(t, mock.Client(), "credimi-verification", input)
+	response := postExtraction(t, mock.Client(), "presentation-metadata", input)
 	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
 }
 
 func TestExtractRejectsMissingDCQL(t *testing.T) {
-	response := postExtraction(t, http.DefaultClient, "presentation-request", `{"client_id":"verifier"}`)
+	response := postExtraction(t, http.DefaultClient, "presentation-metadata", `{"client_id":"verifier"}`)
 	if response.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusUnprocessableEntity)
 	}
@@ -143,6 +147,15 @@ func TestParseCredimiHubURL(t *testing.T) {
 	}
 	if base != "https://credimi.io" || id != "/org/integration/credential" {
 		t.Fatalf("base = %q, id = %q", base, id)
+	}
+}
+
+func TestIsCredimiHubURL(t *testing.T) {
+	if !isCredimiHubURL("https://credimi.io/hub/credentials/org/integration/credential", "credentials") {
+		t.Fatal("credential URL was not recognized")
+	}
+	if isCredimiHubURL("https://credimi.io/hub/use_cases_verifications/org/integration/use-case", "credentials") {
+		t.Fatal("verification URL was recognized as a credential URL")
 	}
 }
 
