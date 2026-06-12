@@ -1,6 +1,6 @@
-# PURIA.md
+# wBARIO.md
 
-This file defines how work is done in this repository. As per Puria wishes.
+This file defines how work is done in this repository. As per BARIO wishes.
 
 It is the canonical source of truth for agents, assistants, humans, automation, and future maintainers.
 
@@ -48,12 +48,12 @@ Prefer:
 
 Before modifying anything:
 
-1. Read `PURIA.md`
+1. Read `BARIO.md`
 2. Inspect repository structure
 3. Do NOT infer or adopt undocumented conventions
-4. If a convention is observed but not defined in PURIA.md:
+4. If a convention is observed but not defined in BARIO.md:
    → record it in `HITL.md`
-5. Proceed using ONLY known rules from PURIA.md
+5. Proceed using ONLY known rules from BARIO.md
 6. Make the smallest safe change
 7. Validate the change
 
@@ -310,39 +310,6 @@ tasks:
 
 ## Design Source
 
-All Puria design MUST be neubrutalist.
-
-If a task includes any web UI:
-
-→ follow `https://neubrutalism.com` as the design reference
-
-If a task includes TUI design:
-
-→ apply neubrutalist principles to the terminal interface
-
-Required neubrutalist traits:
-
-- thick, explicit borders
-- hard offset shadows where the medium supports them
-- square or near-square corners
-- flat high-contrast color
-- bold typography
-- visible structure
-- clear hierarchy
-- no gradients
-- no soft, blurred, polished-neutral styling
-
-If the project uses Svelte:
-
-→ prefer existing neobrutalist Svelte components when they fit the task
-
-If existing components do not fit:
-
-→ implement custom components that follow the same neubrutalist design rules
-
-`DESIGN.md` defines the mandatory Puria neubrutalist design system.
-
-Agents MUST read `DESIGN.md` before any task that affects web UI, TUI, visual identity, layout, components, typography, colors, or design-bearing documentation.
 
 If `DESIGN.md` is present:
 
@@ -360,7 +327,9 @@ If `DESIGN.md` is present:
 
 If `DESIGN.md` is absent:
 
-→ do not infer a design system
+→ use the content of ./design 
+
+→ create and extend a local .css based on the content of  ./design 
 
 → do not create one unless explicitly requested
 
