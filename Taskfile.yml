@@ -5,6 +5,18 @@ tasks:
     cmds:
       - go test ./...
 
+  coverage-check:
+    cmds:
+      - |
+        coverage_file="${COVERAGE_FILE:-/tmp/eudi-conformance-evidence-coverage.out}"
+        coverage_min="${COVERAGE_MIN:-80}"
+        go test ./... -covermode=atomic -coverprofile="$coverage_file"
+        go tool cover -func="$coverage_file" | awk -v min="$coverage_min" '/^total:/ {
+          gsub("%", "", $3)
+          printf "Total coverage: %s%% (required: %s%%)\n", $3, min
+          if (($3 + 0) < (min + 0)) exit 1
+        }'
+
   lint:
     cmds:
       - go vet ./...
