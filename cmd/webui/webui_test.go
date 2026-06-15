@@ -2,6 +2,7 @@ package webui
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -9,6 +10,10 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
+	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 )
 
 func TestIndexAndStaticAssets(t *testing.T) {
@@ -42,6 +47,18 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	}
 	if !strings.Contains(script.Body.String(), "EUDI Evidence") {
 		t.Fatal("script did not contain console signature")
+	}
+
+	healthz := httptest.NewRecorder()
+	handler.ServeHTTP(healthz, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	if healthz.Code != http.StatusOK || healthz.Body.String() != "ok\n" {
+		t.Fatalf("healthz = %d %q", healthz.Code, healthz.Body.String())
+	}
+
+	missing := httptest.NewRecorder()
+	handler.ServeHTTP(missing, httptest.NewRequest(http.MethodGet, "/missing", nil))
+	if missing.Code != http.StatusNotFound {
+		t.Fatalf("missing route status = %d", missing.Code)
 	}
 }
 
@@ -140,6 +157,138 @@ func TestExtractRejectsMissingDCQL(t *testing.T) {
 	}
 }
 
+func TestExtractRejectsInvalidFormInput(t *testing.T) {
+	handler := NewHandler(http.DefaultClient)
+
+	invalidForm := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/extract", strings.NewReader("%"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	handler.ServeHTTP(invalidForm, request)
+	if invalidForm.Code != http.StatusBadRequest {
+		t.Fatalf("invalid form status = %d", invalidForm.Code)
+	}
+
+	missingInput := postExtraction(t, http.DefaultClient, "issuer-metadata", "")
+	if missingInput.Code != http.StatusBadRequest {
+		t.Fatalf("missing input status = %d", missingInput.Code)
+	}
+
+	unknownKind := postExtraction(t, http.DefaultClient, "other", "{}")
+	if unknownKind.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("unknown kind status = %d", unknownKind.Code)
+	}
+}
+
+func TestResolveCredentialOfferNestedURI(t *testing.T) {
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/first":
+			next := "openid-credential-offer://?credential_offer_uri=" + url.QueryEscape(server.URL+"/second")
+			_, _ = fmt.Fprint(w, next)
+		case "/second":
+			_, _ = fmt.Fprint(w, `{"credential_issuer":"https://issuer.example"}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	input := "openid-credential-offer://?credential_offer_uri=" + url.QueryEscape(server.URL+"/first")
+	offer, chain, err := resolveCredentialOffer(server.Client(), input, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(offer) != `{"credential_issuer":"https://issuer.example"}` {
+		t.Fatalf("offer = %s", offer)
+	}
+	if len(chain) != 2 {
+		t.Fatalf("chain length = %d", len(chain))
+	}
+}
+
+func TestResolveCredentialOfferRejectsMalformedInputs(t *testing.T) {
+	cases := []string{
+		"not a uri",
+		"openid-credential-offer://?credential_offer=%7B",
+		"openid-credential-offer://?issuer=missing-offer",
+	}
+	for _, input := range cases {
+		if _, _, err := resolveCredentialOffer(http.DefaultClient, input, 0); err == nil {
+			t.Fatalf("resolveCredentialOffer(%q) succeeded", input)
+		}
+	}
+	if _, _, err := resolveCredentialOffer(http.DefaultClient, "openid-credential-offer://?credential_offer_uri=https://example.test", 6); err == nil {
+		t.Fatal("resolveCredentialOffer over max depth succeeded")
+	}
+}
+
+func TestResolvePresentationRequestVariants(t *testing.T) {
+	requestJWT := compactJWT(t, `{"alg":"none"}`, `{"dcql_query":{"credentials":[{"id":"nested"}]}}`)
+	direct := "openid4vp://authorize?request=" + url.QueryEscape(requestJWT)
+	payload, details, err := resolvePresentationRequest(http.DefaultClient, direct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(payload), "nested") {
+		t.Fatalf("payload = %s", payload)
+	}
+	if details == nil {
+		t.Fatal("expected decoded JWT details")
+	}
+
+	if _, _, err := resolvePresentationRequest(http.DefaultClient, "openid4vp://authorize"); err == nil {
+		t.Fatal("presentation request without request parameters succeeded")
+	}
+}
+
+func TestFetchPresentationObjectPOSTRetries(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if r.Method != http.MethodPost {
+			t.Fatalf("method = %s", r.Method)
+		}
+		if attempts < 3 {
+			http.Error(w, "try again", http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/jwt")
+		_, _ = fmt.Fprint(w, "header.payload.signature")
+	}))
+	defer server.Close()
+
+	body, status, contentType, err := fetchPresentationObject(server.Client(), http.MethodPost, server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if attempts != 3 || status != http.StatusOK || contentType != "application/jwt" || string(body) != "header.payload.signature" {
+		t.Fatalf("attempts=%d status=%d contentType=%q body=%q", attempts, status, contentType, body)
+	}
+}
+
+func TestFetchLimitedErrors(t *testing.T) {
+	errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "failed", http.StatusTeapot)
+	}))
+	defer errorServer.Close()
+	if _, status, _, err := fetchLimited(errorServer.Client(), http.MethodGet, errorServer.URL, nil); err == nil || status != http.StatusTeapot {
+		t.Fatalf("HTTP error status=%d err=%v", status, err)
+	}
+
+	largeServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(make([]byte, maxResponseBytes+1))
+	}))
+	defer largeServer.Close()
+	if _, _, _, err := fetchLimited(largeServer.Client(), http.MethodGet, largeServer.URL, nil); err == nil {
+		t.Fatal("large response succeeded")
+	}
+
+	if _, _, _, err := fetchLimited(http.DefaultClient, http.MethodGet, "://bad-url", nil); err == nil {
+		t.Fatal("bad URL succeeded")
+	}
+}
+
 func TestParseCredimiHubURL(t *testing.T) {
 	base, id, err := parseCredimiHubURL("https://credimi.io/hub/credentials/org/integration/credential", "credentials")
 	if err != nil {
@@ -147,6 +296,17 @@ func TestParseCredimiHubURL(t *testing.T) {
 	}
 	if base != "https://credimi.io" || id != "/org/integration/credential" {
 		t.Fatalf("base = %q, id = %q", base, id)
+	}
+
+	for _, input := range []string{
+		"not-url",
+		"https://credimi.io/hub/use_cases_verifications/org/integration/use-case",
+		"https://credimi.io/hub/credentials/%zz",
+		"https://credimi.io/hub/credentials/",
+	} {
+		if _, _, err := parseCredimiHubURL(input, "credentials"); err == nil {
+			t.Fatalf("parseCredimiHubURL(%q) succeeded", input)
+		}
 	}
 }
 
@@ -167,6 +327,77 @@ func TestIsPublicIP(t *testing.T) {
 	}
 	if !isPublicIP(net.ParseIP("8.8.8.8")) {
 		t.Fatal("public address unexpectedly rejected")
+	}
+}
+
+func TestJSONHelpers(t *testing.T) {
+	dcql, err := findDCQL(json.RawMessage(`{"outer":[{"dcql-query":{"credentials":[{"id":"pid"}]}}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(dcql)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(encoded), "pid") {
+		t.Fatalf("dcql = %s", encoded)
+	}
+
+	if value := rawJSONValue(json.RawMessage(`not-json`)); value != "not-json" {
+		t.Fatalf("rawJSONValue = %#v", value)
+	}
+
+	rendered, err := prettyJSON(map[string]string{"html": "<tag>"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rendered, "<tag>") {
+		t.Fatalf("prettyJSON escaped HTML: %s", rendered)
+	}
+}
+
+func TestExtractionErrorHelpers(t *testing.T) {
+	if err := extractionError(nil); err == nil || err.Error() != "credential extraction failed" {
+		t.Fatalf("nil extraction error = %v", err)
+	}
+	credErr := extractionError(credofferError("credential failed"))
+	if credErr == nil || credErr.Error() != "credential failed" {
+		t.Fatalf("credential extraction error = %v", credErr)
+	}
+
+	if err := presentationError(nil); err == nil || err.Error() != "presentation extraction failed" {
+		t.Fatalf("nil presentation error = %v", err)
+	}
+	presErr := presentationError(presentationExtractionError("presentation failed"))
+	if presErr == nil || presErr.Error() != "presentation failed" {
+		t.Fatalf("presentation extraction error = %v", presErr)
+	}
+}
+
+func TestSafeHTTPClientValidation(t *testing.T) {
+	client := newSafeHTTPClient(time.Second)
+	redirect, err := http.NewRequest(http.MethodGet, "ftp://example.com/file", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := client.CheckRedirect(redirect, nil); err == nil {
+		t.Fatal("unsupported redirect scheme succeeded")
+	}
+
+	if err := validateRemoteURL(&url.URL{Scheme: "https"}); err == nil {
+		t.Fatal("remote URL without host succeeded")
+	}
+	if _, err := safeDialContext(t.Context(), "tcp", "missing-port"); err == nil {
+		t.Fatal("safeDialContext without port succeeded")
+	}
+	if _, err := safeDialContext(t.Context(), "tcp4", "localhost:1"); err == nil {
+		t.Fatal("safeDialContext accepted localhost")
+	}
+}
+
+func TestRunRejectsInvalidFlag(t *testing.T) {
+	if err := Run([]string{"-bad"}); err == nil {
+		t.Fatal("Run accepted an invalid flag")
 	}
 }
 
@@ -197,4 +428,16 @@ func compactJWT(t *testing.T, header, payload string) string {
 
 func serverURL(r *http.Request) string {
 	return "http://" + r.Host
+}
+
+func credofferError(message string) *credoffer.ExtractionError {
+	err := &credoffer.ExtractionError{}
+	err.Error.Message = message
+	return err
+}
+
+func presentationExtractionError(message string) *presentation.ExtractionError {
+	err := &presentation.ExtractionError{}
+	err.Error.Message = message
+	return err
 }
