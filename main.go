@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/forkbombeu/eudi-conformance-evidence/cmd/extractcontext"
+	"github.com/forkbombeu/eudi-conformance-evidence/cmd/webui"
 )
 
 var version = "dev"
@@ -46,6 +47,7 @@ func run(args []string) error {
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  extract-context  Extract protocol context from pipeline input")
+		fmt.Fprintln(os.Stderr, "  web              Start the browser extraction interface")
 		fmt.Fprintln(os.Stderr, "  version          Print version")
 		return fmt.Errorf("no command provided")
 	}
@@ -53,6 +55,8 @@ func run(args []string) error {
 	switch args[0] {
 	case "extract-context":
 		return extractcontext.Run(args[1:])
+	case "web":
+		return webui.Run(args[1:])
 	case "version", "--version":
 		fmt.Println(version)
 		return nil

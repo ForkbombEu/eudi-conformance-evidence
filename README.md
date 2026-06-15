@@ -64,6 +64,23 @@ task build
 
 ## CLI usage
 
+### Web interface
+
+Start the two-page browser interface:
+
+```bash
+eudi-conformance-evidence web --addr :8080
+```
+
+Open `http://localhost:8080`. The launcher accepts:
+
+- a raw credential offer and returns issuer `.well-known` metadata
+- a Credimi Hub credential URL and returns issuer `.well-known` metadata
+- a raw presentation request and returns its `dcql_query`
+- a Credimi Hub use-case verification URL and returns its `dcql_query`
+
+The web server performs protocol requests on behalf of the browser. Its production HTTP client rejects loopback, private, link-local, and multicast destinations.
+
 ### extract-context
 
 ```bash
@@ -255,19 +272,20 @@ git clone https://github.com/forkbombeu/eudi-conformance-evidence
 cd eudi-conformance-evidence
 mise install
 task test
+task coverage-check
 task lint
 task build
 ```
 
 ### Project conventions
 
-See `PURIA.md` for the full engineering doctrine. Key points:
+See `BARIO.md` for the full engineering doctrine. Key points:
 
 - Go standard library preferred; add dependencies only with clear justification
 - Every package has tests with mocked external dependencies
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) with `reason` and `prompt` trailers
 - `mise.toml` declares all required tools
-- `Taskfile.yml` defines `test`, `lint`, `lint:design`, `fmt`, `run`, `build`
+- `Taskfile.yml` defines `test`, `coverage-check`, `lint`, `lint:design`, `fmt`, `run`, `build`
 
 ### Test fixtures
 

@@ -1,10 +1,13 @@
 package credoffer
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -167,6 +170,42 @@ func TestResolveNestedOfferURIReturnsJSON(t *testing.T) {
 	}
 }
 
+func TestResolveNestedOfferURIReturnsCredentialOfferURI(t *testing.T) {
+	offer := `{"credential_issuer":"https://issuer.example"}`
+	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer="+url.QueryEscape(offer))
+	}))
+	defer issuerServer.Close()
+
+	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer_uri="+url.QueryEscape(issuerServer.URL))
+	}))
+	defer credimiServer.Close()
+
+	result := Resolve(credimiServer.Client(), credimiServer.URL, "test-id", "raw", 5)
+	if result.Status != "ok" {
+		t.Fatalf("status = %s: %v", result.Status, result.Error)
+	}
+	if string(result.CredentialOffer) != offer {
+		t.Fatalf("credential offer = %s", result.CredentialOffer)
+	}
+}
+
+func TestResolveRejectsMalformedDeeplink(t *testing.T) {
+	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "%")
+	}))
+	defer credimiServer.Close()
+
+	result := Resolve(credimiServer.Client(), credimiServer.URL, "test-id", "raw", 5)
+	if result.Status != "error" {
+		t.Fatalf("status = %s", result.Status)
+	}
+	if result.Error == nil || result.Error.Error.Code != "deeplink_parse_failed" {
+		t.Fatalf("error = %#v", result.Error)
+	}
+}
+
 func TestResolveURLEncodedCredentialID(t *testing.T) {
 	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
@@ -189,4 +228,58 @@ func TestFetchIssuerMetadataURLDerivation(t *testing.T) {
 		t.Errorf("unexpected URL: %s", fetch.URL)
 	}
 	_ = err // network error is expected in test
+}
+
+func TestFetchIssuerMetadataFormatsAndValidation(t *testing.T) {
+	if _, _, err := FetchIssuerMetadata(http.DefaultClient, json.RawMessage(`{`)); err == nil {
+		t.Fatal("invalid credential offer succeeded")
+	}
+	if _, _, err := FetchIssuerMetadata(http.DefaultClient, json.RawMessage(`{"issuer":"missing"}`)); err == nil {
+		t.Fatal("credential offer without credential_issuer succeeded")
+	}
+
+	jwtMetadata := compactMetadataJWT(t, `{"alg":"none"}`, `{"credential_issuer":"jwt-issuer"}`)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/jwt/"):
+			w.Header().Set("Content-Type", "application/jwt")
+			_, _ = fmt.Fprint(w, jwtMetadata)
+		case strings.HasPrefix(r.URL.Path, "/text/"):
+			w.Header().Set("Content-Type", "text/plain")
+			_, _ = fmt.Fprint(w, "plain metadata")
+		default:
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprint(w, `{"credential_issuer":"json-issuer"}`)
+		}
+	}))
+	defer server.Close()
+
+	for _, tt := range []struct {
+		name   string
+		issuer string
+		format string
+		want   string
+	}{
+		{name: "json", issuer: server.URL, format: "json", want: "json-issuer"},
+		{name: "jwt", issuer: server.URL + "/jwt", format: "jwt", want: "jwt-issuer"},
+		{name: "text", issuer: server.URL + "/text", format: "text", want: "plain metadata"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			metadata, fetch, err := FetchIssuerMetadata(server.Client(), json.RawMessage(fmt.Sprintf(`{"credential_issuer":%q}`, tt.issuer)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fetch.Format != tt.format {
+				t.Fatalf("format = %q", fetch.Format)
+			}
+			if !strings.Contains(string(metadata), tt.want) {
+				t.Fatalf("metadata = %s", metadata)
+			}
+		})
+	}
+}
+
+func compactMetadataJWT(t *testing.T, header, payload string) string {
+	t.Helper()
+	return base64.RawURLEncoding.EncodeToString([]byte(header)) + "." + base64.RawURLEncoding.EncodeToString([]byte(payload)) + "."
 }

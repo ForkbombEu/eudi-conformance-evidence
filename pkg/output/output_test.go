@@ -130,6 +130,10 @@ func TestWriteJSON(t *testing.T) {
 	if !json.Valid(buf.Bytes()) {
 		t.Error("output is not valid JSON")
 	}
+
+	if err := WriteJSON(&buf, make(chan int)); err == nil {
+		t.Fatal("WriteJSON accepted an unmarshalable value")
+	}
 }
 
 func TestCollect(t *testing.T) {
@@ -172,6 +176,40 @@ func TestCollectPartial(t *testing.T) {
 	c := Collect(disc, offerResults, nil, "start", "end")
 	if c.Summary.Status != "partial" {
 		t.Errorf("expected partial, got %s", c.Summary.Status)
+	}
+}
+
+func TestCollectPresentationAliasAndErrors(t *testing.T) {
+	disc := &discovery.Result{
+		PresentationRequestSteps: []discovery.Step{
+			{PipelineOrder: 0, StepID: "vp-001", Use: "use-case-verification-deeplink", UseCaseID: "id-1"},
+			{PipelineOrder: 1, StepID: "vp-002", Use: "use-case-verification-deeplink", UseCaseID: "id-2"},
+		},
+	}
+	presResults := []*presentation.Result{
+		{
+			Status: "ok", StepID: "vp-001", UseCaseID: "id-1",
+			RequestObject: &jwt.Token{
+				Raw:     "raw",
+				Header:  json.RawMessage(`{"alg":"none"}`),
+				Payload: json.RawMessage(`{"dcql_query":{"credentials":[{"id":"pid"}]}}`),
+			},
+		},
+		{
+			Status: "error", StepID: "vp-002", UseCaseID: "id-2",
+			Error: presentationError("presentation failed"),
+		},
+	}
+
+	c := Collect(disc, nil, presResults, "start", "end")
+	if c.Summary.Status != "partial" {
+		t.Fatalf("status = %s", c.Summary.Status)
+	}
+	if len(c.Summary.Errors) != 1 || c.Summary.Errors[0] != "presentation failed" {
+		t.Fatalf("errors = %#v", c.Summary.Errors)
+	}
+	if c.RequestURIOutput == nil {
+		t.Fatal("expected request URI convenience alias")
 	}
 }
 
@@ -290,6 +328,34 @@ func TestWriteToDirWithPresResult(t *testing.T) {
 	}
 }
 
+func TestWriteToDirWithPresentationError(t *testing.T) {
+	outDir := t.TempDir()
+
+	c := &CollectedResult{
+		DiscoveredSteps: &discovery.Result{
+			PresentationRequestSteps: []discovery.Step{
+				{PipelineOrder: 0, StepID: "vp/001", Use: "use-case-verification-deeplink", UseCaseID: "id-1"},
+			},
+		},
+		Summary: &ExtractionSummary{Status: "error"},
+		PresResults: []*presentation.Result{
+			{
+				Status: "error", StepID: "vp/001", UseCaseID: "id-1",
+				Error: presentationError("presentation failed"),
+			},
+		},
+	}
+
+	if err := WriteToDir(outDir, c); err != nil {
+		t.Fatalf("WriteToDir failed: %v", err)
+	}
+
+	matches, _ := filepath.Glob(filepath.Join(outDir, "presentation-requests", "0000-vp-001", "error.json"))
+	if len(matches) != 1 {
+		t.Fatalf("presentation error was not written, matches=%v", matches)
+	}
+}
+
 func TestWriteToDirWithRequestObject(t *testing.T) {
 	outDir := t.TempDir()
 
@@ -388,4 +454,29 @@ func TestWriteAllNoConvenienceAliases(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(outDir, ".well-known.json")); !os.IsNotExist(err) {
 		t.Error(".well-known.json should not exist when multiple offers succeed")
 	}
+}
+
+func TestWriteRawInvalidJSONAndSanitizeDirName(t *testing.T) {
+	outDir := t.TempDir()
+	rawPath := filepath.Join(outDir, "raw.txt")
+	if err := writeRaw(rawPath, json.RawMessage(`not-json`)); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(rawPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "not-json" {
+		t.Fatalf("raw data = %q", data)
+	}
+
+	if got := sanitizeDirName("abc/def ghi:123"); got != "abc-def-ghi-123" {
+		t.Fatalf("sanitized name = %q", got)
+	}
+}
+
+func presentationError(message string) *presentation.ExtractionError {
+	err := &presentation.ExtractionError{}
+	err.Error.Message = message
+	return err
 }

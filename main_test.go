@@ -31,3 +31,10 @@ func TestRunUnknownCommand(t *testing.T) {
 		t.Error("expected error for unknown command")
 	}
 }
+
+func TestRunWebRejectsInvalidFlag(t *testing.T) {
+	err := run([]string{"web", "--not-a-real-flag"})
+	if err == nil {
+		t.Error("expected error for invalid web flag")
+	}
+}
