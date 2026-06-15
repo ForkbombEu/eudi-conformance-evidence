@@ -184,7 +184,12 @@ func writeCredentialOfferDir(dir string, step discovery.Step, r *credoffer.Resul
 		return err
 	}
 	if r.Error != nil {
-		return writeFile(filepath.Join(dir, "error.json"), r.Error)
+		if err := writeFile(filepath.Join(dir, "error.json"), r.Error); err != nil {
+			return err
+		}
+		if r.CredentialOffer == nil {
+			return nil
+		}
 	}
 	if r.DeeplinkURI != "" {
 		if err := os.WriteFile(filepath.Join(dir, "credential-offer-deeplink.txt"), []byte(r.DeeplinkURI), 0644); err != nil {
@@ -204,6 +209,22 @@ func writeCredentialOfferDir(dir string, step discovery.Step, r *credoffer.Resul
 	if r.IssuerMetadataFetch != nil {
 		if err := writeFile(filepath.Join(dir, "issuer-metadata-fetch.json"), r.IssuerMetadataFetch); err != nil {
 			return err
+		}
+	}
+	if len(r.AuthorizationServers) > 0 {
+		if err := writeFile(filepath.Join(dir, "authorization-servers.json"), r.AuthorizationServers); err != nil {
+			return err
+		}
+		if len(r.AuthorizationServers) == 1 {
+			authorizationServer := r.AuthorizationServers[0]
+			if authorizationServer.Metadata != nil {
+				if err := writeRaw(filepath.Join(dir, "authorization-server-metadata.json"), authorizationServer.Metadata); err != nil {
+					return err
+				}
+			}
+			if err := writeFile(filepath.Join(dir, "authorization-server-metadata-fetch.json"), authorizationServer.Fetches); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

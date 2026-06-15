@@ -1,12 +1,12 @@
 # eudi-conformance-evidence
 
-Extract and preserve protocol context from [Credimi](https://credimi.io) EUDI Wallet interoperability pipeline runs — credential offers, presentation requests, issuer metadata, and JWT/JWS request objects — for downstream conformance reporting.
+Extract and preserve protocol context from [Credimi](https://credimi.io) EUDI Wallet interoperability pipeline runs — credential offers, presentation requests, issuer metadata, authorization-server metadata, and JWT/JWS request objects — for downstream conformance reporting.
 
 ## Why this exists
 
 Credimi runs EUDI Wallet / Issuer / Verifier interop pipelines using StepCI, Maestro, and Temporal. Each pipeline produces deeplinks (credential offers, presentation requests) that are **ephemeral**: presentation requests are single-use, issuer sessions expire, and `.well-known` endpoints change.
 
-This tool captures the protocol context **at extraction time** by requesting fresh deeplinks from Credimi and resolving the full chain — credential offer URIs, issuer metadata, request objects — into structured, versionable JSON. The output feeds into conformance taxonomy matching and evidence registry generation (coming later).
+This tool captures the protocol context **at extraction time** by requesting fresh deeplinks from Credimi and resolving the full chain — credential offer URIs, issuer metadata, authorization-server metadata, request objects — into structured, versionable JSON. The output feeds into conformance taxonomy matching and evidence registry generation (coming later).
 
 ## What it does
 
@@ -23,6 +23,8 @@ Temporal pipeline input
          ▼
   Resolve credential_offer chains (recursive credential_offer_uri)
   Fetch issuer .well-known/openid-credential-issuer
+  Discover authorization server from the offer or issuer metadata
+  Fetch RFC 8414 metadata with OIDC discovery fallback
   Decode JWT/JWS metadata (OpenID Federation)
          │
          ▼
@@ -74,8 +76,8 @@ eudi-conformance-evidence web --addr :8080
 
 Open `http://localhost:8080`. The launcher accepts:
 
-- a raw credential offer and returns issuer `.well-known` metadata
-- a Credimi Hub credential URL and returns issuer `.well-known` metadata
+- a raw credential offer and returns issuer and authorization-server `.well-known` metadata
+- a Credimi Hub credential URL and returns issuer and authorization-server `.well-known` metadata
 - a raw presentation request and returns its `dcql_query`
 - a Credimi Hub use-case verification URL and returns its `dcql_query`
 
@@ -121,6 +123,9 @@ out/eudi-iss-ver/
 │       ├── credential-offer.json
 │       ├── well-known.json
 │       ├── issuer-metadata-fetch.json
+│       ├── authorization-servers.json
+│       ├── authorization-server-metadata.json
+│       ├── authorization-server-metadata-fetch.json
 │       └── error.json            # only on failure
 └── presentation-requests/
     └── 0000-eudiw-pid-verifier-.../
@@ -144,7 +149,7 @@ eudi-conformance-evidence extract-context \
   --out-dir out/
 ```
 
-Every HTTP call — Credimi deeplink fetches, credential offer URI resolution, issuer metadata, and request URI POST negotiation — produces a span with `http.method`, `http.url`, and `http.status_code` attributes. When the env var is unset, tracing is a zero-overhead no-op.
+Every HTTP call — Credimi deeplink fetches, credential offer URI resolution, issuer metadata, authorization-server metadata, and request URI POST negotiation — produces a span with `http.method`, `http.url`, and `http.status_code` attributes. When the env var is unset, tracing is a zero-overhead no-op.
 
 ## Library usage
 
@@ -179,6 +184,10 @@ result := credoffer.Resolve(client, "https://credimi.io", "/org/integration/issu
 meta, fetch, err := credoffer.FetchIssuerMetadata(client, result.CredentialOffer)
 // meta — .well-known/openid-credential-issuer (JSON or decoded JWT)
 // fetch — metadata about the HTTP request
+
+// Discover and fetch the selected authorization server metadata
+authorizationServers, err := credoffer.FetchAuthorizationServerMetadata(client, result.CredentialOffer, meta)
+// authorizationServers — metadata plus every RFC 8414 and OIDC discovery attempt
 ```
 
 ### Presentation request resolution

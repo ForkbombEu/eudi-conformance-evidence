@@ -137,6 +137,12 @@ func RunExtraction(r io.Reader, client *http.Client, opts Options) (*output.Coll
 			} else {
 				r.IssuerMetadata = meta
 				r.IssuerMetadataFetch = fetch
+				r.AuthorizationServers, err = credoffer.FetchAuthorizationServerMetadata(client, r.CredentialOffer, meta)
+				if err != nil && opts.Strict {
+					r.Status = "error"
+					r.Error = credoffer.NewError("authorization_server_metadata_fetch_failed", err.Error(),
+						"Could not fetch authorization server metadata.", "", 0, true)
+				}
 			}
 		}
 	}
@@ -183,6 +189,12 @@ func RunExtractionSteps(steps []discovery.Step, client *http.Client, opts Option
 			} else {
 				r.IssuerMetadata = meta
 				r.IssuerMetadataFetch = fetch
+				r.AuthorizationServers, err = credoffer.FetchAuthorizationServerMetadata(client, r.CredentialOffer, meta)
+				if err != nil && opts.Strict {
+					r.Status = "error"
+					r.Error = credoffer.NewError("authorization_server_metadata_fetch_failed", err.Error(),
+						"Could not fetch authorization server metadata.", "", 0, true)
+				}
 			}
 		}
 	}

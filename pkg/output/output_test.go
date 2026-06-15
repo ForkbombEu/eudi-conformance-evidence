@@ -253,6 +253,12 @@ func TestWriteToDirWithOfferResult(t *testing.T) {
 					HTTPStatus: 200,
 					Format:     "json",
 				},
+				AuthorizationServers: []credoffer.AuthorizationServerMetadata{{
+					Issuer: "https://auth.example.com", Source: "issuer_metadata",
+					Metadata: json.RawMessage(`{"issuer":"https://auth.example.com"}`),
+					Fetches:  []credoffer.AuthorizationServerFetch{{URL: "https://auth.example.com/.well-known/oauth-authorization-server", HTTPStatus: 200, Format: "json"}},
+				}},
+				Error: credoffer.NewError("authorization_server_metadata_fetch_failed", "fallback failed", "Could not fetch authorization server metadata.", "", 0, true),
 			},
 		},
 	}
@@ -274,6 +280,10 @@ func TestWriteToDirWithOfferResult(t *testing.T) {
 		"credential-offer.json",
 		"well-known.json",
 		"issuer-metadata-fetch.json",
+		"authorization-servers.json",
+		"authorization-server-metadata.json",
+		"authorization-server-metadata-fetch.json",
+		"error.json",
 	} {
 		if _, err := os.Stat(filepath.Join(dirs[0], f)); os.IsNotExist(err) {
 			t.Errorf("%s not created", f)

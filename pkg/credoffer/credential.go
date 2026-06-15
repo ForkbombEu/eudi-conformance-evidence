@@ -52,16 +52,17 @@ type ExtractionError struct {
 
 // Result holds the full credential-offer extraction result.
 type Result struct {
-	Status              string           `json:"status"`
-	StepID              string           `json:"step_id"`
-	CredentialID        string           `json:"credential_id"`
-	ResolutionChain     []ResolutionStep `json:"resolution_chain"`
-	FinalOfferPath      string           `json:"final_credential_offer_path,omitempty"`
-	DeeplinkURI         string
-	CredentialOffer     json.RawMessage
-	IssuerMetadata      json.RawMessage
-	IssuerMetadataFetch *MetadataFetch
-	Error               *ExtractionError
+	Status               string           `json:"status"`
+	StepID               string           `json:"step_id"`
+	CredentialID         string           `json:"credential_id"`
+	ResolutionChain      []ResolutionStep `json:"resolution_chain"`
+	FinalOfferPath       string           `json:"final_credential_offer_path,omitempty"`
+	DeeplinkURI          string
+	CredentialOffer      json.RawMessage
+	IssuerMetadata       json.RawMessage
+	IssuerMetadataFetch  *MetadataFetch
+	AuthorizationServers []AuthorizationServerMetadata `json:"authorization_servers,omitempty"`
+	Error                *ExtractionError
 }
 
 // Resolve resolves a credential offer from a Credimi deeplink.
