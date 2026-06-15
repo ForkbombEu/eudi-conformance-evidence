@@ -350,7 +350,7 @@ func parseCredimiHubURL(input, collection string) (string, string, error) {
 	id := strings.TrimPrefix(parsed.EscapedPath(), prefix)
 	decodedID, err := url.PathUnescape(id)
 	if err != nil || decodedID == "" {
-		return "", "", errors.New("Credimi Hub URL does not contain an identifier")
+		return "", "", errors.New("credimi Hub URL does not contain an identifier")
 	}
 	return parsed.Scheme + "://" + parsed.Host, "/" + decodedID, nil
 }
