@@ -83,6 +83,46 @@ Open `http://localhost:8080`. The launcher accepts:
 
 The web server performs protocol requests on behalf of the browser. Its production HTTP client rejects loopback, private, link-local, and multicast destinations.
 
+A hosted instance is available at `https://capture-issuer-verifier.credimi.io`. The extraction endpoint accepts form-encoded `POST` requests at `/extract` with `kind` and `input` fields. The response is the rendered HTML extraction page.
+
+#### Hosted curl examples
+
+Credential-1, using a Credimi Hub credential URL:
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST https://capture-issuer-verifier.credimi.io/extract \
+  --data-urlencode "kind=issuer-metadata" \
+  --data-urlencode "input=https://credimi.io/hub/credentials/forkbomb-bv-andrea/misc-issuer-integration-demo/eudiw-pid-pid-vc-sd-jwt-haip-vci"
+```
+
+Credential-2, using an OpenID credential offer URI:
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST https://capture-issuer-verifier.credimi.io/extract \
+  --data-urlencode "kind=issuer-metadata" \
+  --data-urlencode "input=openid-credential-offer://?credential_offer_uri=https%3A%2F%2Ffunke.animo.id%2Foid4vci%2F188e2459-6da8-4431-9062-2fcdac274f41%2Foffers%2Fbc1a9b68-7730-4ba3-baee-7fb438404531"
+```
+
+Verifier-1, using a Credimi Hub use-case verification URL:
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST https://capture-issuer-verifier.credimi.io/extract \
+  --data-urlencode "kind=presentation-metadata" \
+  --data-urlencode "input=https://credimi.io/hub/use_cases_verifications/forkbomb-bv-andrea/misc-verifiers-interop/eudiw-pid-verifier-mdoc"
+```
+
+Verifier-2, using an OpenID4VP request URI:
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST https://capture-issuer-verifier.credimi.io/extract \
+  --data-urlencode "kind=presentation-metadata" \
+  --data-urlencode "input=openid4vp://?client_id=x509_san_dns%3Afunke.animo.id&request_uri=https%3A%2F%2Ffunke.animo.id%2Foid4vp%2F019368ed-3787-7669-b7f4-8c012238e90d%2Fauthorization-requests%2F1b77be0e-e878-44d2-bf81-a574b84d4c7c"
+```
+
 ### extract-context
 
 ```bash
