@@ -91,6 +91,12 @@ func TestExtractCredentialOffer(t *testing.T) {
 	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
 	assertResultContains(t, response, `class="result-disclosure`)
+	if strings.Count(response.Body.String(), `class="metadata-result-box"`) != 2 {
+		t.Fatalf("expected two metadata result boxes: %s", response.Body.String())
+	}
+	assertResultContains(t, response, "Credential issuer metadata")
+	assertResultContains(t, response, "Authorization server metadata")
+	assertResultContains(t, response, `credential_issuer_metadata`)
 	assertResultContains(t, response, "authorization_endpoint")
 }
 

@@ -36,7 +36,17 @@
                 <p class="result-message">{{.Error}}</p>
               {{else}}
                 <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-output">Copy JSON</button></div>
-                <pre id="issuer-output">{{.Output}}</pre>
+                <pre id="issuer-output" class="copy-source" aria-hidden="true">{{.Output}}</pre>
+                <div class="metadata-result-grid">
+                  <section class="metadata-result-box">
+                    <div class="metadata-result-heading"><span class="badge badge-issuer">issuer</span><h4>Credential issuer metadata</h4></div>
+                    <pre>{{.IssuerMetadataOutput}}</pre>
+                  </section>
+                  <section class="metadata-result-box">
+                    <div class="metadata-result-heading"><span class="badge badge-verifier">authorization server</span><h4>Authorization server metadata</h4></div>
+                    <pre>{{.AuthorizationServerOutput}}</pre>
+                  </section>
+                </div>
                 {{if .Details}}<details class="resolution-details"><summary>Resolution details</summary><pre>{{.Details}}</pre></details>{{end}}
               {{end}}
             </details>

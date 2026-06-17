@@ -40,14 +40,16 @@ type server struct {
 }
 
 type pageData struct {
-	Title      string
-	Kind       string
-	Input      string
-	Source     string
-	Output     string
-	Details    string
-	Error      string
-	StatusText string
+	Title                     string
+	Kind                      string
+	Input                     string
+	Source                    string
+	Output                    string
+	IssuerMetadataOutput      string
+	AuthorizationServerOutput string
+	Details                   string
+	Error                     string
+	StatusText                string
 }
 
 // Run starts the web interface.
@@ -150,6 +152,15 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 		data.StatusText = "failed"
 		s.render(w, http.StatusInternalServerError, "index.html", data)
 		return
+	}
+	if kind == "issuer-metadata" {
+		data.IssuerMetadataOutput, data.AuthorizationServerOutput, err = issuerMetadataDisplay(output)
+		if err != nil {
+			data.Error = err.Error()
+			data.StatusText = "failed"
+			s.render(w, http.StatusInternalServerError, "index.html", data)
+			return
+		}
 	}
 	data.Details, _ = prettyJSON(details)
 	s.render(w, http.StatusOK, "index.html", data)
@@ -410,6 +421,22 @@ func issuerMetadataOutput(metadata json.RawMessage, authorizationServers []credo
 		"credential_issuer_metadata": rawJSONValue(metadata),
 		"authorization_servers":      authorizationServers,
 	}
+}
+
+func issuerMetadataDisplay(output any) (string, string, error) {
+	sections, ok := output.(map[string]any)
+	if !ok {
+		return "", "", errors.New("issuer metadata result has an unexpected format")
+	}
+	issuer, err := prettyJSON(sections["credential_issuer_metadata"])
+	if err != nil {
+		return "", "", err
+	}
+	authorizationServer, err := prettyJSON(sections["authorization_servers"])
+	if err != nil {
+		return "", "", err
+	}
+	return issuer, authorizationServer, nil
 }
 
 func rawJSONValue(raw json.RawMessage) any {
