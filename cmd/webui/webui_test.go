@@ -24,11 +24,20 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if index.Code != http.StatusOK {
 		t.Fatalf("index status = %d", index.Code)
 	}
-	if !strings.Contains(index.Body.String(), "Extract .well-known and DCQL") {
+	if !strings.Contains(index.Body.String(), "EUDI Issuer/Verifier metatadata extractor") {
 		t.Fatal("index did not contain extractor launcher")
 	}
 	if strings.Count(index.Body.String(), `class="card extractor-card"`) != 2 {
 		t.Fatal("index did not contain exactly two extractor cards")
+	}
+	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
+		t.Fatal("index did not contain the Credimi favicon")
+	}
+
+	favicon := httptest.NewRecorder()
+	handler.ServeHTTP(favicon, httptest.NewRequest(http.MethodGet, "/static/credimi_logo.svg", nil))
+	if favicon.Code != http.StatusOK || !strings.Contains(favicon.Body.String(), "<svg") {
+		t.Fatalf("favicon = %d %q", favicon.Code, favicon.Body.String())
 	}
 
 	stylesheet := httptest.NewRecorder()
@@ -64,12 +73,16 @@ func TestIndexAndStaticAssets(t *testing.T) {
 
 func TestExtractCredentialOffer(t *testing.T) {
 	issuer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/.well-known/openid-credential-issuer" {
+		switch r.URL.Path {
+		case "/.well-known/openid-credential-issuer":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprintf(w, `{"credential_issuer":%q,"credential_endpoint":%q}`, serverURL(r), serverURL(r)+"/credential")
+		case "/.well-known/oauth-authorization-server":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprintf(w, `{"issuer":%q,"authorization_endpoint":%q}`, serverURL(r), serverURL(r)+"/authorize")
+		default:
 			http.NotFound(w, r)
-			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = fmt.Fprintf(w, `{"credential_issuer":%q,"credential_endpoint":%q}`, serverURL(r), serverURL(r)+"/credential")
 	}))
 	defer issuer.Close()
 
@@ -78,6 +91,13 @@ func TestExtractCredentialOffer(t *testing.T) {
 	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
 	assertResultContains(t, response, `class="result-disclosure`)
+	if strings.Count(response.Body.String(), `class="metadata-result-box"`) != 2 {
+		t.Fatalf("expected two metadata result boxes: %s", response.Body.String())
+	}
+	assertResultContains(t, response, "Credential issuer metadata")
+	assertResultContains(t, response, "Authorization server metadata")
+	assertResultContains(t, response, `credential_issuer_metadata`)
+	assertResultContains(t, response, "authorization_endpoint")
 }
 
 func TestExtractCredimiCredential(t *testing.T) {
@@ -93,6 +113,9 @@ func TestExtractCredimiCredential(t *testing.T) {
 		case "/.well-known/openid-credential-issuer":
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = fmt.Fprintf(w, `{"credential_issuer":%q,"credential_endpoint":%q}`, mock.URL, mock.URL+"/credential")
+		case "/.well-known/oauth-authorization-server":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprintf(w, `{"issuer":%q,"token_endpoint":%q}`, mock.URL, mock.URL+"/token")
 		default:
 			http.NotFound(w, r)
 		}
@@ -102,6 +125,7 @@ func TestExtractCredimiCredential(t *testing.T) {
 	input := mock.URL + "/hub/credentials/org/integration/credential"
 	response := postExtraction(t, mock.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
+	assertResultContains(t, response, "token_endpoint")
 }
 
 func TestExtractPresentationRequest(t *testing.T) {

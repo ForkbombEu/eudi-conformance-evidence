@@ -86,6 +86,12 @@ textarea:focus { outline: 3px solid oklch(0.2955 0.1659 277.31 / 18%); border-co
 .result-disclosure { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-muted); }
 .result-disclosure > summary, .resolution-details > summary { padding: 13px 14px; color: var(--brand-primary); font-weight: 800; cursor: pointer; }
 .result-disclosure > pre, .resolution-details > pre { max-height: 52vh; overflow: auto; margin: 0 14px 14px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copy-source { display: none; }
+.metadata-result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 14px 14px; }
+.metadata-result-box { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); }
+.metadata-result-heading { min-height: auto !important; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.metadata-result-heading h4 { margin: 0; font-size: 14px; line-height: 1.35; }
+.metadata-result-box pre { max-height: 44vh; overflow: auto; margin: 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-muted); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .result-toolbar { min-height: auto !important; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px 12px; color: var(--fg-muted); font-size: 12px; font-weight: 700; }
 .result-message { padding: 0 14px 14px; color: var(--destructive) !important; }
 .result-error { border-left: 4px solid var(--destructive); }
@@ -102,7 +108,7 @@ textarea:focus { outline: 3px solid oklch(0.2955 0.1659 277.31 / 18%); border-co
 .fork-link { background: white; color: var(--brand-primary); }
 
 @media (max-width: 850px) {
-  .extractor-grid, .result-layout { grid-template-columns: 1fr; }
+  .extractor-grid, .result-layout, .metadata-result-grid { grid-template-columns: 1fr; }
   .extractor-card > div:first-child { min-height: auto; }
   .result-header, .footer-content { align-items: flex-start; flex-direction: column; }
 }

@@ -26,11 +26,12 @@ import (
 
 const (
 	maxFormBytes     = 64 << 10
+	siteTitle        = "EUDI Issuer/Verifier metatadata extractor"
 	maxResponseBytes = 4 << 20
 	defaultTimeout   = 30 * time.Second
 )
 
-//go:embed templates/*.html static/*.css static/*.js
+//go:embed templates/*.html static/*.css static/*.js static/*.svg
 var assets embed.FS
 
 type server struct {
@@ -39,14 +40,16 @@ type server struct {
 }
 
 type pageData struct {
-	Title      string
-	Kind       string
-	Input      string
-	Source     string
-	Output     string
-	Details    string
-	Error      string
-	StatusText string
+	Title                     string
+	Kind                      string
+	Input                     string
+	Source                    string
+	Output                    string
+	IssuerMetadataOutput      string
+	AuthorizationServerOutput string
+	Details                   string
+	Error                     string
+	StatusText                string
 }
 
 // Run starts the web interface.
@@ -93,24 +96,24 @@ func (s *server) index(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	s.render(w, http.StatusOK, "index.html", pageData{Title: "EUDI Context Extractor"})
+	s.render(w, http.StatusOK, "index.html", pageData{Title: siteTitle})
 }
 
 func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 	if err := r.ParseForm(); err != nil {
-		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: "EUDI Context Extractor", Error: "The submitted form is invalid."})
+		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: siteTitle, Error: "The submitted form is invalid."})
 		return
 	}
 
 	kind := strings.TrimSpace(r.FormValue("kind"))
 	input := strings.TrimSpace(r.FormValue("input"))
 	if input == "" {
-		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: "EUDI Context Extractor", Kind: kind, Error: "An extraction input is required."})
+		s.render(w, http.StatusBadRequest, "index.html", pageData{Title: siteTitle, Kind: kind, Error: "An extraction input is required."})
 		return
 	}
 
-	data := pageData{Title: "EUDI Context Extractor", Kind: kind, Input: input, StatusText: "resolved"}
+	data := pageData{Title: siteTitle, Kind: kind, Input: input, StatusText: "resolved"}
 	var output any
 	var details any
 	var err error
@@ -150,6 +153,15 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 		s.render(w, http.StatusInternalServerError, "index.html", data)
 		return
 	}
+	if kind == "issuer-metadata" {
+		data.IssuerMetadataOutput, data.AuthorizationServerOutput, err = issuerMetadataDisplay(output)
+		if err != nil {
+			data.Error = err.Error()
+			data.StatusText = "failed"
+			s.render(w, http.StatusInternalServerError, "index.html", data)
+			return
+		}
+	}
 	data.Details, _ = prettyJSON(details)
 	s.render(w, http.StatusOK, "index.html", data)
 }
@@ -163,7 +175,12 @@ func (s *server) extractCredentialOffer(input string) (any, any, error) {
 	if err != nil {
 		return nil, chain, err
 	}
-	return rawJSONValue(metadata), map[string]any{"credential_offer": rawJSONValue(offer), "resolution_chain": chain, "metadata_fetch": fetch}, nil
+	authorizationServers, authorizationErr := credoffer.FetchAuthorizationServerMetadata(s.client, offer, metadata)
+	details := map[string]any{"credential_offer": rawJSONValue(offer), "resolution_chain": chain, "metadata_fetch": fetch}
+	if authorizationErr != nil {
+		details["authorization_server_error"] = authorizationErr.Error()
+	}
+	return issuerMetadataOutput(metadata, authorizationServers), details, nil
 }
 
 func (s *server) extractCredimiCredential(input string) (any, any, error) {
@@ -181,7 +198,8 @@ func (s *server) extractCredimiCredential(input string) (any, any, error) {
 	}
 	result.IssuerMetadata = metadata
 	result.IssuerMetadataFetch = fetch
-	return rawJSONValue(metadata), result, nil
+	result.AuthorizationServers, _ = credoffer.FetchAuthorizationServerMetadata(s.client, result.CredentialOffer, metadata)
+	return issuerMetadataOutput(metadata, result.AuthorizationServers), result, nil
 }
 
 func (s *server) extractPresentationRequest(input string) (any, any, error) {
@@ -396,6 +414,29 @@ func walkForDCQL(value any) (any, bool) {
 		}
 	}
 	return nil, false
+}
+
+func issuerMetadataOutput(metadata json.RawMessage, authorizationServers []credoffer.AuthorizationServerMetadata) any {
+	return map[string]any{
+		"credential_issuer_metadata": rawJSONValue(metadata),
+		"authorization_servers":      authorizationServers,
+	}
+}
+
+func issuerMetadataDisplay(output any) (string, string, error) {
+	sections, ok := output.(map[string]any)
+	if !ok {
+		return "", "", errors.New("issuer metadata result has an unexpected format")
+	}
+	issuer, err := prettyJSON(sections["credential_issuer_metadata"])
+	if err != nil {
+		return "", "", err
+	}
+	authorizationServer, err := prettyJSON(sections["authorization_servers"])
+	if err != nil {
+		return "", "", err
+	}
+	return issuer, authorizationServer, nil
 }
 
 func rawJSONValue(raw json.RawMessage) any {
