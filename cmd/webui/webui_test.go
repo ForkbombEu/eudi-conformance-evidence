@@ -146,6 +146,7 @@ func TestExtractPresentationRequest(t *testing.T) {
 	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
 	assertResultContains(t, response, `data-copy-target="presentation-output"`)
+	assertResultContains(t, response, `class="resolution-details" open`)
 	assertResultContains(t, response, `data-copy-target="presentation-resolution-details-output"`)
 }
 

@@ -70,7 +70,7 @@
               {{else}}
                 <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-output">Copy JSON</button></div>
                 <pre id="presentation-output">{{.Output}}</pre>
-                {{if .Details}}<details class="resolution-details"><summary><span>Resolution details</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-resolution-details-output">Copy JSON</button></summary><pre id="presentation-resolution-details-output">{{.Details}}</pre></details>{{end}}
+                {{if .Details}}<details class="resolution-details" open><summary><span>Resolution details</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-resolution-details-output">Copy JSON</button></summary><pre id="presentation-resolution-details-output">{{.Details}}</pre></details>{{end}}
               {{end}}
             </details>
           {{end}}
