@@ -91,12 +91,19 @@ func TestExtractCredentialOffer(t *testing.T) {
 	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
 	assertResultContains(t, response, `class="result-disclosure`)
-	if strings.Count(response.Body.String(), `class="metadata-result-box"`) != 2 {
-		t.Fatalf("expected two metadata result boxes: %s", response.Body.String())
+	body := response.Body.String()
+	if strings.Count(body, `class="metadata-result-box"`) != 3 {
+		t.Fatalf("expected three metadata result boxes: %s", body)
 	}
-	assertResultContains(t, response, "Credential issuer metadata")
-	assertResultContains(t, response, "Authorization server metadata")
-	assertResultContains(t, response, `credential_issuer_metadata`)
+	issuerIndex := strings.Index(body, "Credential issuer metadata")
+	authorizationIndex := strings.Index(body, "Authorization server metadata")
+	detailsIndex := strings.Index(body, "Resolution details")
+	if issuerIndex < 0 || authorizationIndex < 0 || detailsIndex < 0 || issuerIndex > authorizationIndex || authorizationIndex > detailsIndex {
+		t.Fatalf("metadata result order was not issuer, authorization server, resolution details: %s", body)
+	}
+	assertResultContains(t, response, `data-copy-target="issuer-metadata-output"`)
+	assertResultContains(t, response, `data-copy-target="authorization-server-output"`)
+	assertResultContains(t, response, `data-copy-target="issuer-resolution-details-output"`)
 	assertResultContains(t, response, "authorization_endpoint")
 }
 

@@ -35,19 +35,23 @@
               {{if .Error}}
                 <p class="result-message">{{.Error}}</p>
               {{else}}
-                <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-output">Copy JSON</button></div>
-                <pre id="issuer-output" class="copy-source" aria-hidden="true">{{.Output}}</pre>
+                <div class="result-toolbar"><span>{{.Source}}</span></div>
                 <div class="metadata-result-grid">
                   <section class="metadata-result-box">
-                    <div class="metadata-result-heading"><span class="badge badge-issuer">issuer</span><h4>Credential issuer metadata</h4></div>
-                    <pre>{{.IssuerMetadataOutput}}</pre>
+                    <div class="metadata-result-heading"><span class="badge badge-issuer">issuer</span><h4>Credential issuer metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-metadata-output">Copy JSON</button></div>
+                    <pre id="issuer-metadata-output">{{.IssuerMetadataOutput}}</pre>
                   </section>
                   <section class="metadata-result-box">
-                    <div class="metadata-result-heading"><span class="badge badge-verifier">authorization server</span><h4>Authorization server metadata</h4></div>
-                    <pre>{{.AuthorizationServerOutput}}</pre>
+                    <div class="metadata-result-heading"><span class="badge badge-verifier">authorization server</span><h4>Authorization server metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="authorization-server-output">Copy JSON</button></div>
+                    <pre id="authorization-server-output">{{.AuthorizationServerOutput}}</pre>
                   </section>
+                  {{if .Details}}
+                    <section class="metadata-result-box">
+                      <div class="metadata-result-heading"><span class="badge badge-wallet">resolution</span><h4>Resolution details</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-resolution-details-output">Copy JSON</button></div>
+                      <pre id="issuer-resolution-details-output">{{.Details}}</pre>
+                    </section>
+                  {{end}}
                 </div>
-                {{if .Details}}<details class="resolution-details"><summary>Resolution details</summary><pre>{{.Details}}</pre></details>{{end}}
               {{end}}
             </details>
           {{end}}
