@@ -140,6 +140,8 @@ func TestExtractPresentationRequest(t *testing.T) {
 	response := postExtraction(t, http.DefaultClient, "presentation-metadata", input)
 	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
+	assertResultContains(t, response, `data-copy-target="presentation-output"`)
+	assertResultContains(t, response, `data-copy-target="presentation-resolution-details-output"`)
 }
 
 func TestExtractPresentationRequestURI(t *testing.T) {

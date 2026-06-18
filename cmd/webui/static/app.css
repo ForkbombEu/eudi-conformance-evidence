@@ -96,7 +96,7 @@ textarea:focus { outline: 3px solid oklch(0.2955 0.1659 277.31 / 18%); border-co
 .result-message { padding: 0 14px 14px; color: var(--destructive) !important; }
 .result-error { border-left: 4px solid var(--destructive); }
 .resolution-details { margin: 0 14px 14px; border-top: 1px solid var(--border); }
-.resolution-details > summary { padding-inline: 0; }
+.resolution-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 0; }
 .resolution-details > pre { margin-inline: 0; margin-bottom: 0; }
 .footer { background: var(--brand-primary); color: white; padding: 32px 0; }
 .footer-inner { width: min(100% - 48px, var(--max-width)); margin-inline: auto; }

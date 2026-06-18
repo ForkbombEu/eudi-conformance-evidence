@@ -5,7 +5,9 @@ console.log(
 );
 
 for (const button of document.querySelectorAll("[data-copy-target]")) {
-  button.addEventListener("click", async () => {
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     const target = document.getElementById(button.dataset.copyTarget);
     if (!target) return;
     await navigator.clipboard.writeText(target.textContent ?? "");
