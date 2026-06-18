@@ -33,6 +33,11 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("index did not contain the Credimi favicon")
 	}
+	if !strings.Contains(index.Body.String(), `href="https://github.com/ForkbombEu/eudi-conformance-evidence/blob/main/README.md"`) ||
+		!strings.Contains(index.Body.String(), `target="_blank"`) ||
+		!strings.Contains(index.Body.String(), `rel="noopener noreferrer"`) {
+		t.Fatal("index did not contain the GitHub README help link")
+	}
 
 	favicon := httptest.NewRecorder()
 	handler.ServeHTTP(favicon, httptest.NewRequest(http.MethodGet, "/static/credimi_logo.svg", nil))
