@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
   <link rel="icon" type="image/svg+xml" href="/static/credimi_logo.svg">
+  <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand-lockup" href="/"><span class="brand-mark">EE</span><span>EUDI Issuer/Verifier metatadata extractor</span></a>
-      <div class="topbar-actions"><span class="status-chip status-wallet">protocol tools</span><a class="btn btn-outline btn-md" href="/docs">API docs</a><a class="btn btn-outline btn-md help-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence/blob/main/README.md" target="_blank" rel="noopener noreferrer">Help</a></div>
+      <a class="brand-lockup" href="/"><img class="brand-logo" src="/static/credimi_logo.svg" alt="Credimi"><span>EUDI Conformance Evidence</span></a>
+      <div class="topbar-actions"><span class="status-chip status-wallet">protocol tools</span><a class="btn btn-outline btn-md" href="/docs">API docs</a><a class="btn btn-outline btn-md" href="/openapi.yaml">OpenAPI</a><a class="btn btn-outline btn-md help-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a></div>
     </div>
   </header>
   <main>
@@ -79,7 +80,7 @@
       </div>
     </section>
   </main>
-  <footer class="footer"><div class="footer-inner"><div class="footer-content"><div class="footer-brand"><span class="brand-mark footer-mark">EE</span><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div><a class="footer-link fork-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence">Fork me on GitHub</a></div></div></footer>
+  <footer class="footer"><div class="footer-inner"><div class="footer-content"><div class="footer-brand"><img class="footer-logo" src="/static/credimi_logo_negative.svg" alt="Credimi"><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div><a class="footer-link fork-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence">Repository</a></div></div></footer>
   <script src="/static/app.js"></script>
 </body>
 </html>{{end}}

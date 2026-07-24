@@ -1,4 +1,4 @@
-# wBARIO.md
+# BARIO.md
 
 This file defines how work is done in this repository. As per BARIO wishes.
 
@@ -293,10 +293,6 @@ tasks:
     cmds:
       - task lint:design
 
-  lint:design:
-    cmds:
-      - if [ -f DESIGN.md ]; then npx --yes @google/design.md lint DESIGN.md; fi
-
   run:
     cmds:
       - go run .
@@ -309,6 +305,7 @@ tasks:
 ---
 
 ## Design Source
+
 
 
 If `DESIGN.md` is present:
@@ -325,13 +322,6 @@ If `DESIGN.md` is present:
 
 → `task lint:design` MUST run `npx --yes @google/design.md lint DESIGN.md`
 
-If `DESIGN.md` is absent:
-
-→ use the content of ./design 
-
-→ create and extend a local .css based on the content of  ./design 
-
-→ do not create one unless explicitly requested
 
 ---
 
@@ -450,3 +440,14 @@ mise exec -- task -a
 ```
 
 should work even if your shell PATH is not reloaded.
+
+## README.md updates 
+
+After each development task and before each commit, the README.md should be updated. If the README.md is obsolete or empty, re-write it from scratch. README.md should contain the sections: 
+- Intro: explains what the app does. It will a one-liner and a short description first of the main problems the app try to solve (but only if those are known and clear) and then the main functionalities. 
+- Technical specs: list the programming languages and frameworks used and describe the main software components and libraries used in the project, but only include specific, noteworthy and non-obvious libraries, e.g. Credo.TS. Do not include any commonly used or basic libraries. 
+- HOW to run: basic info about how build and run the app locally
+- Quick GUI guide (if applicable): Organize this in subchapters. Describe what the GUI offers, what can be see on the homepage, how to perform actions that are related to the main functionalities of the app
+- CLI Examples (if applicable): a Table listing all the CLI functions, with one example per functionalities
+- API Examples (if applicable): a Table listing all the API functions, with one curl example per API
+  

@@ -1,6 +1,7 @@
 package webui
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +17,27 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 )
+
+func TestRuntimeCredimiAssetsMatchHITLInputs(t *testing.T) {
+	tests := []struct{ runtime, input string }{
+		{"static/style.css", "../../HITL/style.css"},
+		{"static/credimi_logo.svg", "../../HITL/credimi_logo.svg"},
+		{"static/credimi_logo_negative.svg", "../../HITL/credimi_logo_negative.svg"},
+	}
+	for _, test := range tests {
+		runtime, err := os.ReadFile(test.runtime)
+		if err != nil {
+			t.Fatal(err)
+		}
+		input, err := os.ReadFile(test.input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(runtime, input) {
+			t.Fatalf("%s differs from %s", test.runtime, test.input)
+		}
+	}
+}
 
 func TestIndexAndStaticAssets(t *testing.T) {
 	handler := NewHandler(http.DefaultClient)
@@ -33,7 +56,7 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("index did not contain the Credimi favicon")
 	}
-	if !strings.Contains(index.Body.String(), `href="https://github.com/ForkbombEu/eudi-conformance-evidence/blob/main/README.md"`) ||
+	if !strings.Contains(index.Body.String(), `href="https://github.com/ForkbombEu/eudi-conformance-evidence"`) ||
 		!strings.Contains(index.Body.String(), `target="_blank"`) ||
 		!strings.Contains(index.Body.String(), `rel="noopener noreferrer"`) {
 		t.Fatal("index did not contain the GitHub README help link")
@@ -41,11 +64,17 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if !strings.Contains(index.Body.String(), `href="/docs"`) {
 		t.Fatal("index did not contain the API documentation link")
 	}
+	if !strings.Contains(index.Body.String(), `href="/openapi.yaml"`) {
+		t.Fatal("index did not contain the OpenAPI link")
+	}
 
 	docs := httptest.NewRecorder()
 	handler.ServeHTTP(docs, httptest.NewRequest(http.MethodGet, "/docs", nil))
 	if docs.Code != http.StatusOK || !strings.Contains(docs.Body.String(), "<elements-api") || !strings.Contains(docs.Body.String(), `apiDescriptionUrl="/openapi.yaml"`) {
 		t.Fatalf("docs = %d %q", docs.Code, docs.Body.String())
+	}
+	if !strings.Contains(docs.Body.String(), `href="/static/credimi_logo.svg"`) {
+		t.Fatal("docs did not contain the same-origin favicon")
 	}
 	if strings.Contains(docs.Body.String(), "<header") || strings.Contains(docs.Body.String(), "<main") || strings.Contains(docs.Body.String(), "EUDI Issuer/Verifier") {
 		t.Fatal("docs contained application page chrome")
@@ -79,6 +108,18 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	}
 	if !strings.Contains(stylesheet.Body.String(), "--brand-primary") {
 		t.Fatal("stylesheet did not contain design tokens")
+	}
+
+	sharedStylesheet := httptest.NewRecorder()
+	handler.ServeHTTP(sharedStylesheet, httptest.NewRequest(http.MethodGet, "/static/style.css", nil))
+	if sharedStylesheet.Code != http.StatusOK || !strings.Contains(sharedStylesheet.Body.String(), ".topbar") {
+		t.Fatal("shared stylesheet was not served")
+	}
+
+	negativeLogo := httptest.NewRecorder()
+	handler.ServeHTTP(negativeLogo, httptest.NewRequest(http.MethodGet, "/static/credimi_logo_negative.svg", nil))
+	if negativeLogo.Code != http.StatusOK || !strings.Contains(negativeLogo.Body.String(), "<svg") {
+		t.Fatal("negative Credimi logo was not served")
 	}
 
 	script := httptest.NewRecorder()
