@@ -105,6 +105,8 @@ The web server exposes:
 - `GET /`: extraction UI.
 - `POST /extract`: form-encoded extraction endpoint with `kind` and `input` fields.
 - `GET /healthz`: plain text health check returning `ok`.
+- `GET /docs`: interactive Stoplight API reference.
+- `GET /openapi.yaml`: OpenAPI 3.1 description consumed by the documentation page.
 - `GET /static/*`: embedded CSS, JavaScript, and image assets.
 
 A hosted instance is available at `https://capture-issuer-verifier.credimi.io`.

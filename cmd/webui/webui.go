@@ -31,7 +31,7 @@ const (
 	defaultTimeout   = 30 * time.Second
 )
 
-//go:embed templates/*.html static/*.css static/*.js static/*.svg
+//go:embed templates/*.html static/*.css static/*.js static/*.svg static/*.yaml
 var assets embed.FS
 
 type server struct {
@@ -82,6 +82,8 @@ func NewHandler(client *http.Client) http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", s.index)
+	mux.HandleFunc("GET /docs", s.docs)
+	mux.HandleFunc("GET /openapi.yaml", s.openapi)
 	mux.HandleFunc("POST /extract", s.extract)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -97,6 +99,24 @@ func (s *server) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.render(w, http.StatusOK, "index.html", pageData{Title: siteTitle})
+}
+
+func (s *server) docs(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/docs" {
+		http.NotFound(w, r)
+		return
+	}
+	s.render(w, http.StatusOK, "docs.html", pageData{Title: "API documentation | " + siteTitle})
+}
+
+func (s *server) openapi(w http.ResponseWriter, _ *http.Request) {
+	specification, err := assets.ReadFile("static/openapi.yaml")
+	if err != nil {
+		http.Error(w, "OpenAPI specification is unavailable", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/yaml; charset=utf-8")
+	_, _ = w.Write(specification)
 }
 
 func (s *server) extract(w http.ResponseWriter, r *http.Request) {
@@ -485,7 +505,7 @@ func (s *server) render(w http.ResponseWriter, status int, name string, data pag
 
 func securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' https://unpkg.com; script-src 'self' https://unpkg.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")

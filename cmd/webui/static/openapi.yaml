@@ -1,0 +1,83 @@
+openapi: 3.1.0
+info:
+  title: EUDI Conformance Evidence Web API
+  version: 1.0.0
+  description: |
+    Browser-facing API for extracting EUDI issuer, authorization-server, and
+    presentation-request metadata. The extraction endpoint returns rendered HTML.
+servers:
+  - url: /
+paths:
+  /:
+    get:
+      summary: Open the metadata extraction interface
+      responses:
+        '200':
+          description: Extraction interface HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+  /extract:
+    post:
+      summary: Extract issuer or presentation-request metadata
+      description: Returns the extraction interface with the result or an error rendered in HTML.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [kind, input]
+              properties:
+                kind:
+                  type: string
+                  enum: [issuer-metadata, presentation-metadata]
+                  description: The metadata extractor to run.
+                input:
+                  type: string
+                  description: A credential offer, presentation request, or supported Credimi Hub URL.
+      responses:
+        '200':
+          description: Rendered HTML containing the extracted metadata.
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid form submission or missing input.
+        '422':
+          description: Unknown extraction type or an input that cannot be resolved.
+        '500':
+          description: The extracted result could not be formatted.
+  /healthz:
+    get:
+      summary: Check server health
+      responses:
+        '200':
+          description: Server is healthy.
+          content:
+            text/plain:
+              schema:
+                type: string
+                const: ok
+  /docs:
+    get:
+      summary: Open the interactive API reference
+      responses:
+        '200':
+          description: Stoplight Elements documentation page.
+          content:
+            text/html:
+              schema:
+                type: string
+  /openapi.yaml:
+    get:
+      summary: Download the OpenAPI description
+      responses:
+        '200':
+          description: OpenAPI 3.1 YAML document.
+          content:
+            application/yaml:
+              schema:
+                type: string

@@ -38,6 +38,24 @@ func TestIndexAndStaticAssets(t *testing.T) {
 		!strings.Contains(index.Body.String(), `rel="noopener noreferrer"`) {
 		t.Fatal("index did not contain the GitHub README help link")
 	}
+	if !strings.Contains(index.Body.String(), `href="/docs"`) {
+		t.Fatal("index did not contain the API documentation link")
+	}
+
+	docs := httptest.NewRecorder()
+	handler.ServeHTTP(docs, httptest.NewRequest(http.MethodGet, "/docs", nil))
+	if docs.Code != http.StatusOK || !strings.Contains(docs.Body.String(), "<elements-api") || !strings.Contains(docs.Body.String(), `apiDescriptionUrl="/openapi.yaml"`) {
+		t.Fatalf("docs = %d %q", docs.Code, docs.Body.String())
+	}
+	if !strings.Contains(docs.Header().Get("Content-Security-Policy"), "https://unpkg.com") {
+		t.Fatal("docs CSP did not allow the Stoplight assets")
+	}
+
+	openAPI := httptest.NewRecorder()
+	handler.ServeHTTP(openAPI, httptest.NewRequest(http.MethodGet, "/openapi.yaml", nil))
+	if openAPI.Code != http.StatusOK || !strings.Contains(openAPI.Header().Get("Content-Type"), "application/yaml") || !strings.Contains(openAPI.Body.String(), "openapi: 3.1.0") || !strings.Contains(openAPI.Body.String(), "  /extract:") {
+		t.Fatalf("OpenAPI = %d %q %q", openAPI.Code, openAPI.Header().Get("Content-Type"), openAPI.Body.String())
+	}
 
 	favicon := httptest.NewRecorder()
 	handler.ServeHTTP(favicon, httptest.NewRequest(http.MethodGet, "/static/credimi_logo.svg", nil))
