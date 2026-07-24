@@ -47,6 +47,9 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if docs.Code != http.StatusOK || !strings.Contains(docs.Body.String(), "<elements-api") || !strings.Contains(docs.Body.String(), `apiDescriptionUrl="/openapi.yaml"`) {
 		t.Fatalf("docs = %d %q", docs.Code, docs.Body.String())
 	}
+	if strings.Contains(docs.Body.String(), "<header") || strings.Contains(docs.Body.String(), "<main") || strings.Contains(docs.Body.String(), "EUDI Issuer/Verifier") {
+		t.Fatal("docs contained application page chrome")
+	}
 	if !strings.Contains(docs.Header().Get("Content-Security-Policy"), "https://unpkg.com") {
 		t.Fatal("docs CSP did not allow the Stoplight assets")
 	}

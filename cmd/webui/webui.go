@@ -106,7 +106,7 @@ func (s *server) docs(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	s.render(w, http.StatusOK, "docs.html", pageData{Title: "API documentation | " + siteTitle})
+	s.render(w, http.StatusOK, "docs.html", pageData{Title: "API documentation"})
 }
 
 func (s *server) openapi(w http.ResponseWriter, _ *http.Request) {

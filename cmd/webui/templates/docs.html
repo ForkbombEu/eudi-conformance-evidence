@@ -4,28 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
-  <link rel="icon" type="image/svg+xml" href="/static/credimi_logo.svg">
-  <link rel="stylesheet" href="/static/app.css">
   <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements@9.0.0/styles.min.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand-lockup" href="/"><span class="brand-mark">EE</span><span>EUDI Issuer/Verifier metatadata extractor</span></a>
-      <div class="topbar-actions"><a class="btn btn-outline btn-md" href="/">Extractor</a><a class="btn btn-outline btn-md help-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence/blob/main/README.md" target="_blank" rel="noopener noreferrer">Help</a></div>
-    </div>
-  </header>
-  <main class="docs-page">
-    <section class="docs-intro container">
-      <p class="eyebrow">OpenAPI 3.1</p>
-      <h1>API documentation</h1>
-      <p>Interactive reference for the extraction UI, form endpoint, health check, and API specification.</p>
-    </section>
-    <section class="docs-reference" aria-label="API reference">
-      <elements-api apiDescriptionUrl="/openapi.yaml" router="hash" layout="responsive" tryItCredentialsPolicy="same-origin"></elements-api>
-    </section>
-  </main>
+  <elements-api apiDescriptionUrl="/openapi.yaml" router="hash" layout="responsive" tryItCredentialsPolicy="same-origin"></elements-api>
   <script src="https://unpkg.com/@stoplight/elements@9.0.0/web-components.min.js"></script>
-  <script src="/static/app.js"></script>
 </body>
 </html>{{end}}
