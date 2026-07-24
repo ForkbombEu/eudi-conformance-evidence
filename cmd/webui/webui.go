@@ -505,7 +505,11 @@ func (s *server) render(w http.ResponseWriter, status int, name string, data pag
 
 func securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' https://unpkg.com; script-src 'self' https://unpkg.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+		contentSecurityPolicy := "default-src 'self'; style-src 'self' https://unpkg.com; script-src 'self' https://unpkg.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+		if r.URL.Path == "/docs" {
+			contentSecurityPolicy = "default-src 'self'; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' https://unpkg.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+		}
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")

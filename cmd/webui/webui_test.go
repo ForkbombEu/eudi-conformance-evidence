@@ -50,8 +50,14 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if strings.Contains(docs.Body.String(), "<header") || strings.Contains(docs.Body.String(), "<main") || strings.Contains(docs.Body.String(), "EUDI Issuer/Verifier") {
 		t.Fatal("docs contained application page chrome")
 	}
-	if !strings.Contains(docs.Header().Get("Content-Security-Policy"), "https://unpkg.com") {
-		t.Fatal("docs CSP did not allow the Stoplight assets")
+	docsCSP := docs.Header().Get("Content-Security-Policy")
+	if !strings.Contains(docsCSP, "https://unpkg.com") || !strings.Contains(docsCSP, "'unsafe-inline'") {
+		t.Fatal("docs CSP did not allow the Stoplight assets and component styles")
+	}
+
+	indexCSP := index.Header().Get("Content-Security-Policy")
+	if strings.Contains(indexCSP, "'unsafe-inline'") {
+		t.Fatal("index CSP unexpectedly allowed inline styles")
 	}
 
 	openAPI := httptest.NewRecorder()
