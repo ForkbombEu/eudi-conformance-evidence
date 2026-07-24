@@ -3,7 +3,7 @@
 This repository is governed by `BARIO.md`.
 Agents MUST read `BARIO.md` before any action.
 `BARIO.md` is the single source of truth for agent behavior, engineering style, workflow, git rules, commits, testing, releases, and project-specific doctrine.
-`DESIGN.md` is the design source referenced by `BARIO.md`; agents MUST read it before any task that affects UI, TUI, visual identity, layout, components, typography, or colors.
+`DESIGN.md` is the design source referenced by `BARIO.md`; if present, agents MUST read it before any task that affects UI, TUI, visual identity, layout, components, typography, or colors.
 Before doing anything, agents MUST read `BARIO.md`.
 If `BARIO.md` is missing, unreadable, or unclear:
 
