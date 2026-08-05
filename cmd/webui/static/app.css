@@ -100,7 +100,8 @@ textarea:focus { outline: 3px solid oklch(0.2955 0.1659 277.31 / 18%); border-co
 .resolution-details { margin: 0 14px 14px; border-top: 1px solid var(--border); }
 .resolution-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 0; }
 .resolution-details > pre { margin-inline: 0; margin-bottom: 0; }
-.footer { background: var(--brand-primary); color: white; padding: 32px 0; }
+/* The closing padding moves onto the Credimi Extras bar so the strip reaches the bottom edge. */
+.footer { background: var(--brand-primary); color: white; padding: 32px 0 0; }
 .footer-inner { width: min(100% - 48px, var(--max-width)); margin-inline: auto; }
 .footer-content { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .footer-brand { display: inline-flex; align-items: center; gap: 14px; }
@@ -109,6 +110,21 @@ textarea:focus { outline: 3px solid oklch(0.2955 0.1659 277.31 / 18%); border-co
 .footer-mark { background: white; color: var(--brand-primary); }
 .footer-link { min-height: 36px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: var(--radius-md); color: white; font-weight: 700; text-decoration: none; }
 .fork-link { background: white; color: var(--brand-primary); }
+
+/* Credimi Extras cross-promotional bars: one strip above the topbar, one closing the footer, both
+   linking to credimi.io. The same pair appears in every Credimi Extras application, so these rules
+   are deliberately self-contained and depend only on the shared brand tokens. Both logos are inline
+   images inside the sentence rather than flex siblings of it, so at phone widths the line breaks
+   between words and the marks stay attached to the text they belong to. */
+.credimi-extras-bar { background: var(--brand-secondary); color: var(--brand-primary); padding: 7px 24px; font-size: 12.5px; line-height: 1.45; }
+.credimi-extras-bar-footer { margin-top: 32px; padding: 9px 24px; background: rgb(0 0 0 / 35%); color: rgb(255 255 255 / 85%); font-size: 12.5px; line-height: 1.45; }
+.credimi-extras-bar-inner { max-width: var(--max-width); margin-inline: auto; text-align: center; text-wrap: balance; }
+.credimi-extras-mark { display: inline-block; width: 16px; height: 16px; margin-right: 2px; object-fit: contain; vertical-align: -3px; }
+/* Only the linked word or wordmark is clickable — the bar itself is not a target. */
+.credimi-extras-bar a { color: inherit; text-decoration: underline; }
+.credimi-extras-wordmark-link { text-decoration: none; }
+.credimi-extras-wordmark { display: inline-block; height: 16px; width: auto; vertical-align: -4px; }
+.credimi-extras-bar a:focus-visible, .credimi-extras-wordmark-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
 
 @media (max-width: 850px) {
   .extractor-grid, .result-layout, .metadata-result-grid { grid-template-columns: 1fr; }

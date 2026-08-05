@@ -23,6 +23,8 @@ func TestRuntimeCredimiAssetsMatchHITLInputs(t *testing.T) {
 		{"static/style.css", "../../HITL/style.css"},
 		{"static/credimi_logo.svg", "../../HITL/credimi_logo.svg"},
 		{"static/credimi_logo_negative.svg", "../../HITL/credimi_logo_negative.svg"},
+		{"static/credimi_logo-transp.svg", "../../HITL/credimi_logo-transp.svg"},
+		{"static/credimi_logo-transp_white.svg", "../../HITL/credimi_logo-transp_white.svg"},
 	}
 	for _, test := range tests {
 		runtime, err := os.ReadFile(test.runtime)
@@ -60,6 +62,11 @@ func TestIndexAndStaticAssets(t *testing.T) {
 		!strings.Contains(index.Body.String(), `target="_blank"`) ||
 		!strings.Contains(index.Body.String(), `rel="noopener noreferrer"`) {
 		t.Fatal("index did not contain the GitHub README help link")
+	}
+	if strings.Count(index.Body.String(), "This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with") != 2 ||
+		!strings.Contains(index.Body.String(), `<a href="https://credimi.io" target="_blank" rel="noopener">Credimi</a>`) ||
+		!strings.Contains(index.Body.String(), `src="/static/credimi_logo-transp_white.svg" alt="Credimi"`) {
+		t.Fatal("index did not contain both Credimi Extras banner strips")
 	}
 	if !strings.Contains(index.Body.String(), `href="/docs"`) {
 		t.Fatal("index did not contain the API documentation link")
@@ -120,6 +127,14 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	handler.ServeHTTP(negativeLogo, httptest.NewRequest(http.MethodGet, "/static/credimi_logo_negative.svg", nil))
 	if negativeLogo.Code != http.StatusOK || !strings.Contains(negativeLogo.Body.String(), "<svg") {
 		t.Fatal("negative Credimi logo was not served")
+	}
+
+	for _, wordmark := range []string{"/static/credimi_logo-transp.svg", "/static/credimi_logo-transp_white.svg"} {
+		served := httptest.NewRecorder()
+		handler.ServeHTTP(served, httptest.NewRequest(http.MethodGet, wordmark, nil))
+		if served.Code != http.StatusOK || !strings.Contains(served.Body.String(), "<svg") {
+			t.Fatalf("%s = %d", wordmark, served.Code)
+		}
 	}
 
 	script := httptest.NewRecorder()
