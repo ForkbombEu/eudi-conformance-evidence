@@ -1,4 +1,5 @@
-// Package credential resolves credential offers from Credimi deeplinks.
+// Package credoffer resolves OpenID4VCI credential offers from credential
+// deeplinks and fetches the issuer and authorization-server metadata they name.
 package credoffer
 
 import (
@@ -65,37 +66,9 @@ type Result struct {
 	Error                *ExtractionError
 }
 
-// Resolve resolves a credential offer from a Credimi deeplink fetched over HTTP.
-func Resolve(client *http.Client, credimiBaseURL, credentialID, idEncoding string, maxDepth int) *Result {
-	r := &Result{
-		Status:       "ok",
-		CredentialID: credentialID,
-	}
-
-	credimiURL := buildCredimiURL(credimiBaseURL, "credential", credentialID, idEncoding)
-
-	// Step 0: fetch Credimi deeplink
-	step0, body, err := fetchURL(client, credimiURL)
-	if err != nil {
-		r.Status = "error"
-		r.Error = NewError("credimi_deeplink_fetch_failed", "Could not fetch Credimi deeplink",
-			"The Credimi deeplink could not be fetched.", credimiURL, 0, true)
-		return r
-	}
-	if step0.HTTPStatus >= 400 {
-		r.ResolutionChain = append(r.ResolutionChain, step0)
-		r.Status = "error"
-		r.Error = NewError("credimi_deeplink_fetch_failed", fmt.Sprintf("Credimi returned HTTP %d", step0.HTTPStatus),
-			"The Credimi deeplink endpoint returned an error.", credimiURL, step0.HTTPStatus, true)
-		return r
-	}
-	r.resolveDeeplink(client, step0, strings.TrimSpace(body), maxDepth)
-	return r
-}
-
-// ResolveDeeplink resolves a credential offer from a deeplink the caller already
-// holds, such as one Credimi resolved in-process. It never contacts Credimi; it
-// only follows credential_offer_uri references found in the deeplink.
+// ResolveDeeplink resolves a credential offer from a credential deeplink
+// (openid-credential-offer://...). It carries the offer by value or follows
+// credential_offer_uri references, up to maxDepth.
 func ResolveDeeplink(client *http.Client, credentialID, deeplinkURI string, maxDepth int) *Result {
 	r := &Result{
 		Status:       "ok",
@@ -119,7 +92,7 @@ func ResolveDeeplink(client *http.Client, credentialID, deeplinkURI string, maxD
 // credential offer it carries, by value or through credential_offer_uri.
 func (r *Result) resolveDeeplink(client *http.Client, step0 ResolutionStep, deeplinkURI string, maxDepth int) {
 	step0.Depth = 0
-	step0.Kind = "credimi_deeplink"
+	step0.Kind = "deeplink"
 	step0.ReturnedURI = deeplinkURI
 	r.ResolutionChain = append(r.ResolutionChain, step0)
 	r.DeeplinkURI = deeplinkURI
@@ -129,7 +102,7 @@ func (r *Result) resolveDeeplink(client *http.Client, step0 ResolutionStep, deep
 	if err != nil {
 		r.Status = "error"
 		r.Error = NewError("deeplink_parse_failed", "Could not parse deeplink URI",
-			"The deeplink URI returned by Credimi could not be parsed.", deeplinkURI, 0, true)
+			"The credential deeplink URI could not be parsed.", deeplinkURI, 0, true)
 		return
 	}
 
@@ -309,23 +282,6 @@ func fetchURL(client *http.Client, rawURL string) (ResolutionStep, string, error
 	step.ReturnedPayloadSHA256 = fmt.Sprintf("%x", sha256.Sum256(body))
 
 	return step, string(body), nil
-}
-
-func buildCredimiURL(baseURL, kind, id, encoding string) string {
-	base := strings.TrimSuffix(baseURL, "/")
-	encodedID := encodeID(id, encoding)
-	return fmt.Sprintf("%s/api/%s/deeplink?id=%s", base, kind, encodedID)
-}
-
-func encodeID(id, encoding string) string {
-	switch encoding {
-	case "url":
-		return url.QueryEscape(id)
-	case "raw":
-		return id
-	default: // auto - default to raw, URL-encoding fallback handled at call site
-		return url.QueryEscape(id)
-	}
 }
 
 // NewError creates a new ExtractionError.

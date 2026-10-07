@@ -1,4 +1,5 @@
-// Package presentation resolves presentation requests from Credimi verification deeplinks.
+// Package presentation resolves OpenID4VP presentation requests from
+// verification deeplinks.
 package presentation
 
 import (
@@ -57,28 +58,8 @@ type Result struct {
 // postStrategies in order for auto mode
 var postStrategies = []string{"empty", "wallet_nonce", "wallet_metadata_object", "wallet_metadata_empty_string"}
 
-// Resolve resolves a presentation request from a Credimi verification deeplink fetched over HTTP.
-func Resolve(client *http.Client, credimiBaseURL, useCaseID, idEncoding, postStrategy string, timeout time.Duration) *Result {
-	credimiURL := buildCredimiURL(credimiBaseURL, "verification", useCaseID, idEncoding)
-
-	// Step 1: fetch Credimi verification deeplink
-	body, err := httpGet(client, credimiURL)
-	if err != nil {
-		r := &Result{
-			Status:       "error",
-			UseCaseID:    useCaseID,
-			PostStrategy: postStrategy,
-		}
-		r.Error = newExtractionError("verification_deeplink_fetch_failed", "Could not fetch verification deeplink",
-			"The verification deeplink could not be fetched from Credimi.", credimiURL, 0, true)
-		return r
-	}
-	return ResolveDeeplink(client, useCaseID, body, postStrategy)
-}
-
 // ResolveDeeplink resolves a presentation request from a verification deeplink
-// the caller already holds, such as one Credimi resolved in-process. It never
-// contacts Credimi; it only fetches the request_uri found in the deeplink.
+// (for example haip-vp://...) by fetching the request_uri it names.
 func ResolveDeeplink(client *http.Client, useCaseID, deeplinkURI, postStrategy string) *Result {
 	r := &Result{
 		Status:       "ok",
@@ -266,23 +247,6 @@ func httpGet(client *http.Client, rawURL string) (string, error) {
 	}
 
 	return string(body), nil
-}
-
-func buildCredimiURL(baseURL, kind, id, encoding string) string {
-	base := strings.TrimSuffix(baseURL, "/")
-	encodedID := encodeID(id, encoding)
-	return fmt.Sprintf("%s/api/%s/deeplink?id=%s", base, kind, encodedID)
-}
-
-func encodeID(id, encoding string) string {
-	switch encoding {
-	case "url":
-		return url.QueryEscape(id)
-	case "raw":
-		return id
-	default:
-		return url.QueryEscape(id)
-	}
 }
 
 func newExtractionError(code, message, humanMessage, url string, httpStatus int, recoverable bool) *ExtractionError {

@@ -11,98 +11,6 @@ import (
 	"testing"
 )
 
-func TestResolveDirectCredentialOffer(t *testing.T) {
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("id") == "" {
-			w.WriteHeader(400)
-			return
-		}
-		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%2C%22credential_configuration_ids%22%3A%5B%22test%22%5D%7D`)) //nolint:errcheck
-	}))
-	defer credimiServer.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, credimiServer.URL, "test-credential-id", "raw", 5)
-
-	if result.Status != "ok" {
-		t.Fatalf("expected status ok, got %s", result.Status)
-	}
-	if result.CredentialOffer == nil {
-		t.Fatal("expected credential offer, got nil")
-	}
-
-	var offer map[string]any
-	if err := json.Unmarshal(result.CredentialOffer, &offer); err != nil {
-		t.Fatalf("unmarshal offer: %v", err)
-	}
-	if offer["credential_issuer"] != "https://issuer.example" {
-		t.Errorf("unexpected issuer: %v", offer["credential_issuer"])
-	}
-}
-
-func TestResolveNestedCredentialOfferURI(t *testing.T) {
-	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
-	}))
-	defer issuerServer.Close()
-
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		encodedURI := url.QueryEscape(issuerServer.URL + "/offers/nested?raw=true")
-		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + encodedURI))
-	}))
-	defer credimiServer.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, credimiServer.URL, "test-id", "raw", 5)
-
-	if result.Status != "ok" {
-		t.Fatalf("expected status ok, got %s: %v", result.Status, result.Error)
-	}
-	if result.CredentialOffer == nil {
-		t.Fatal("expected credential offer, got nil")
-	}
-	if len(result.ResolutionChain) < 2 {
-		t.Errorf("expected at least 2 resolution steps, got %d", len(result.ResolutionChain))
-	}
-}
-
-func TestResolveCredimiFetchFailure(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-	}))
-	defer server.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, server.URL, "test-id", "raw", 5)
-
-	if result.Status != "error" {
-		t.Errorf("expected status error, got %s", result.Status)
-	}
-	if result.Error == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestResolveMaxDepthExceeded(t *testing.T) {
-	var server *httptest.Server
-	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/api/credential/deeplink" {
-			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
-		} else {
-			_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(server.URL+"/self-ref")))
-		}
-	}))
-	defer server.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, server.URL, "test-id", "raw", 2)
-
-	if result.Status != "error" {
-		t.Errorf("expected status error for max depth, got %s", result.Status)
-	}
-}
-
 func TestFetchIssuerMetadataURL(t *testing.T) {
 	offer := json.RawMessage(`{"credential_issuer":"https://example.com"}`)
 	_, fetch, err := FetchIssuerMetadata(&http.Client{}, offer)
@@ -123,100 +31,6 @@ func TestExtractionErrorJSON(t *testing.T) {
 	}
 	if !json.Valid(out) {
 		t.Error("error output is not valid JSON")
-	}
-}
-
-func TestEncodeID(t *testing.T) {
-	rawID := "/org/integration/test-id"
-
-	if got := encodeID(rawID, "url"); got == rawID {
-		t.Error("url encoding should encode slashes")
-	}
-	if got := encodeID(rawID, "raw"); got != rawID {
-		t.Errorf("raw encoding should not modify: got %q", got)
-	}
-	// auto defaults to url encoding
-	if got := encodeID(rawID, "auto"); got == rawID {
-		t.Error("auto encoding should encode by default")
-	}
-}
-
-func TestResolveNestedOfferURIReturnsJSON(t *testing.T) {
-	// resolveOfferURI returns concrete JSON directly
-	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"credential_issuer":"https://issuer.example","credential_configuration_ids":["final"]}`))
-	}))
-	defer issuerServer.Close()
-
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer_uri=` + url.QueryEscape(issuerServer.URL)))
-	}))
-	defer credimiServer.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, credimiServer.URL, "test-id", "raw", 5)
-
-	if result.Status != "ok" {
-		t.Fatalf("expected status ok, got %s: %v", result.Status, result.Error)
-	}
-	if result.CredentialOffer == nil {
-		t.Fatal("expected credential offer, got nil")
-	}
-	var offer map[string]any
-	_ = json.Unmarshal(result.CredentialOffer, &offer)
-	if offer["credential_issuer"] != "https://issuer.example" {
-		t.Errorf("unexpected issuer: %v", offer["credential_issuer"])
-	}
-}
-
-func TestResolveNestedOfferURIReturnsCredentialOfferURI(t *testing.T) {
-	offer := `{"credential_issuer":"https://issuer.example"}`
-	issuerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer="+url.QueryEscape(offer))
-	}))
-	defer issuerServer.Close()
-
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer_uri="+url.QueryEscape(issuerServer.URL))
-	}))
-	defer credimiServer.Close()
-
-	result := Resolve(credimiServer.Client(), credimiServer.URL, "test-id", "raw", 5)
-	if result.Status != "ok" {
-		t.Fatalf("status = %s: %v", result.Status, result.Error)
-	}
-	if string(result.CredentialOffer) != offer {
-		t.Fatalf("credential offer = %s", result.CredentialOffer)
-	}
-}
-
-func TestResolveRejectsMalformedDeeplink(t *testing.T) {
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "%")
-	}))
-	defer credimiServer.Close()
-
-	result := Resolve(credimiServer.Client(), credimiServer.URL, "test-id", "raw", 5)
-	if result.Status != "error" {
-		t.Fatalf("status = %s", result.Status)
-	}
-	if result.Error == nil || result.Error.Error.Code != "deeplink_parse_failed" {
-		t.Fatalf("error = %#v", result.Error)
-	}
-}
-
-func TestResolveURLEncodedCredentialID(t *testing.T) {
-	credimiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte(`openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example%22%7D`))
-	}))
-	defer credimiServer.Close()
-
-	client := &http.Client{}
-	result := Resolve(client, credimiServer.URL, "/org/integration/test-id", "url", 5)
-
-	if result.Status != "ok" {
-		t.Fatalf("expected status ok, got %s", result.Status)
 	}
 }
 
@@ -290,6 +104,15 @@ func TestResolveDeeplink(t *testing.T) {
 		_, _ = w.Write([]byte(offerJSON)) //nolint:errcheck
 	}))
 	defer offerServer.Close()
+	nestedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer="+url.QueryEscape(offerJSON))
+	}))
+	defer nestedServer.Close()
+	var loopServer *httptest.Server
+	loopServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "openid-credential-offer://?credential_offer_uri="+url.QueryEscape(loopServer.URL))
+	}))
+	defer loopServer.Close()
 
 	tests := []struct {
 		name       string
@@ -312,6 +135,20 @@ func TestResolveDeeplink(t *testing.T) {
 			wantStatus: "ok",
 			wantOffer:  true,
 			wantChain:  2,
+		},
+		{
+			name:       "offer URI answering another offer deeplink",
+			deeplink:   "openid-credential-offer://?credential_offer_uri=" + url.QueryEscape(nestedServer.URL),
+			wantStatus: "ok",
+			wantOffer:  true,
+			wantChain:  2,
+		},
+		{
+			name:       "self-referencing offer URI stops at max depth",
+			deeplink:   "openid-credential-offer://?credential_offer_uri=" + url.QueryEscape(loopServer.URL),
+			wantStatus: "error",
+			wantCode:   "credential_offer_uri_resolution_failed",
+			wantChain:  6,
 		},
 		{
 			name:       "empty deeplink",
@@ -354,7 +191,7 @@ func TestResolveDeeplink(t *testing.T) {
 			}
 			if tc.wantChain > 0 {
 				step0 := result.ResolutionChain[0]
-				if step0.Kind != "credimi_deeplink" || step0.ReturnedURI != strings.TrimSpace(tc.deeplink) || step0.URL != "" {
+				if step0.Kind != "deeplink" || step0.ReturnedURI != strings.TrimSpace(tc.deeplink) || step0.URL != "" {
 					t.Errorf("step 0 = %+v", step0)
 				}
 			}
