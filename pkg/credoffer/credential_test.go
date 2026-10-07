@@ -283,3 +283,81 @@ func compactMetadataJWT(t *testing.T, header, payload string) string {
 	t.Helper()
 	return base64.RawURLEncoding.EncodeToString([]byte(header)) + "." + base64.RawURLEncoding.EncodeToString([]byte(payload)) + "."
 }
+
+func TestResolveDeeplink(t *testing.T) {
+	offerJSON := `{"credential_issuer":"https://issuer.example","credential_configuration_ids":["test"]}`
+	offerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(offerJSON)) //nolint:errcheck
+	}))
+	defer offerServer.Close()
+
+	tests := []struct {
+		name       string
+		deeplink   string
+		wantStatus string
+		wantCode   string
+		wantOffer  bool
+		wantChain  int
+	}{
+		{
+			name:       "offer by value",
+			deeplink:   "openid-credential-offer://?credential_offer=" + url.QueryEscape(offerJSON),
+			wantStatus: "ok",
+			wantOffer:  true,
+			wantChain:  1,
+		},
+		{
+			name:       "offer by reference",
+			deeplink:   "  openid-credential-offer://?credential_offer_uri=" + url.QueryEscape(offerServer.URL) + "\n",
+			wantStatus: "ok",
+			wantOffer:  true,
+			wantChain:  2,
+		},
+		{
+			name:       "empty deeplink",
+			deeplink:   "   ",
+			wantStatus: "error",
+			wantCode:   "deeplink_missing",
+		},
+		{
+			name:       "unparsable deeplink",
+			deeplink:   "openid-credential-offer://%zz",
+			wantStatus: "error",
+			wantCode:   "deeplink_parse_failed",
+			wantChain:  1,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := ResolveDeeplink(&http.Client{}, "org/issuer/cred", tc.deeplink, 5)
+
+			if result.Status != tc.wantStatus {
+				t.Fatalf("status = %q, want %q (error: %+v)", result.Status, tc.wantStatus, result.Error)
+			}
+			if result.CredentialID != "org/issuer/cred" {
+				t.Errorf("credential id = %q", result.CredentialID)
+			}
+			if tc.wantCode != "" && (result.Error == nil || result.Error.Error.Code != tc.wantCode) {
+				t.Errorf("error = %+v, want code %q", result.Error, tc.wantCode)
+			}
+			if tc.wantOffer {
+				var offer map[string]any
+				if err := json.Unmarshal(result.CredentialOffer, &offer); err != nil {
+					t.Fatalf("unmarshal offer: %v", err)
+				}
+				if offer["credential_issuer"] != "https://issuer.example" {
+					t.Errorf("issuer = %v", offer["credential_issuer"])
+				}
+			}
+			if len(result.ResolutionChain) != tc.wantChain {
+				t.Fatalf("resolution chain length = %d, want %d", len(result.ResolutionChain), tc.wantChain)
+			}
+			if tc.wantChain > 0 {
+				step0 := result.ResolutionChain[0]
+				if step0.Kind != "credimi_deeplink" || step0.ReturnedURI != strings.TrimSpace(tc.deeplink) || step0.URL != "" {
+					t.Errorf("step 0 = %+v", step0)
+				}
+			}
+		})
+	}
+}

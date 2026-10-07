@@ -57,25 +57,41 @@ type Result struct {
 // postStrategies in order for auto mode
 var postStrategies = []string{"empty", "wallet_nonce", "wallet_metadata_object", "wallet_metadata_empty_string"}
 
-// Resolve resolves a presentation request from a Credimi verification deeplink.
+// Resolve resolves a presentation request from a Credimi verification deeplink fetched over HTTP.
 func Resolve(client *http.Client, credimiBaseURL, useCaseID, idEncoding, postStrategy string, timeout time.Duration) *Result {
-	r := &Result{
-		Status:       "ok",
-		UseCaseID:    useCaseID,
-		PostStrategy: postStrategy,
-	}
-
 	credimiURL := buildCredimiURL(credimiBaseURL, "verification", useCaseID, idEncoding)
 
 	// Step 1: fetch Credimi verification deeplink
 	body, err := httpGet(client, credimiURL)
 	if err != nil {
-		r.Status = "error"
+		r := &Result{
+			Status:       "error",
+			UseCaseID:    useCaseID,
+			PostStrategy: postStrategy,
+		}
 		r.Error = newExtractionError("verification_deeplink_fetch_failed", "Could not fetch verification deeplink",
 			"The verification deeplink could not be fetched from Credimi.", credimiURL, 0, true)
 		return r
 	}
-	r.DeeplinkURI = strings.TrimSpace(body)
+	return ResolveDeeplink(client, useCaseID, body, postStrategy)
+}
+
+// ResolveDeeplink resolves a presentation request from a verification deeplink
+// the caller already holds, such as one Credimi resolved in-process. It never
+// contacts Credimi; it only fetches the request_uri found in the deeplink.
+func ResolveDeeplink(client *http.Client, useCaseID, deeplinkURI, postStrategy string) *Result {
+	r := &Result{
+		Status:       "ok",
+		UseCaseID:    useCaseID,
+		PostStrategy: postStrategy,
+	}
+	r.DeeplinkURI = strings.TrimSpace(deeplinkURI)
+	if r.DeeplinkURI == "" {
+		r.Status = "error"
+		r.Error = newExtractionError("deeplink_missing", "No verification deeplink provided",
+			"No verification deeplink was provided to resolve.", "", 0, true)
+		return r
+	}
 
 	// Parse URI to extract request_uri and request_uri_method
 	parsed, err := url.Parse(r.DeeplinkURI)

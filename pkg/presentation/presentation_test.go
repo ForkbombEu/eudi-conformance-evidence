@@ -157,3 +157,70 @@ func TestStrategiesToTry(t *testing.T) {
 		}
 	}
 }
+
+func TestResolveDeeplink(t *testing.T) {
+	requestURIServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/jwt")
+		_, _ = w.Write([]byte("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiaXNzIjoiaXNzdWVyIn0.c2ln"))
+	}))
+	defer requestURIServer.Close()
+
+	tests := []struct {
+		name          string
+		deeplink      string
+		wantStatus    string
+		wantCode      string
+		wantJWT       bool
+		wantMethodGET bool
+	}{
+		{
+			name:          "request_uri defaults to GET",
+			deeplink:      " haip-vp://?request_uri=" + url.QueryEscape(requestURIServer.URL) + "&client_id=test-client\n",
+			wantStatus:    "ok",
+			wantJWT:       true,
+			wantMethodGET: true,
+		},
+		{
+			name:       "empty deeplink",
+			deeplink:   "",
+			wantStatus: "error",
+			wantCode:   "deeplink_missing",
+		},
+		{
+			name:       "missing request_uri",
+			deeplink:   "haip-vp://?client_id=test",
+			wantStatus: "error",
+			wantCode:   "request_uri_missing",
+		},
+		{
+			name:       "unparsable deeplink",
+			deeplink:   "haip-vp://%zz",
+			wantStatus: "error",
+			wantCode:   "deeplink_parse_failed",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := ResolveDeeplink(&http.Client{}, "org/verifier/use-case", tc.deeplink, "auto")
+
+			if result.Status != tc.wantStatus {
+				t.Fatalf("status = %q, want %q (error: %+v)", result.Status, tc.wantStatus, result.Error)
+			}
+			if result.UseCaseID != "org/verifier/use-case" {
+				t.Errorf("use case id = %q", result.UseCaseID)
+			}
+			if tc.wantCode != "" && (result.Error == nil || result.Error.Error.Code != tc.wantCode) {
+				t.Errorf("error = %+v, want code %q", result.Error, tc.wantCode)
+			}
+			if tc.wantJWT && (result.RequestObject == nil || !result.RequestObject.SignaturePresent) {
+				t.Errorf("expected a signed request object, got %+v", result.RequestObject)
+			}
+			if tc.wantMethodGET && result.RequestURIMethod != "get" {
+				t.Errorf("request_uri_method = %q, want get", result.RequestURIMethod)
+			}
+			if result.DeeplinkURI != strings.TrimSpace(tc.deeplink) {
+				t.Errorf("deeplink = %q, want trimmed input", result.DeeplinkURI)
+			}
+		})
+	}
+}
