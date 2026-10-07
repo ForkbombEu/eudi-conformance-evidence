@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/forkbombeu/eudi-conformance-evidence/cmd/internal/credimi"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/jwt"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
@@ -208,7 +209,7 @@ func (s *server) extractCredimiCredential(input string) (any, any, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	result := credoffer.Resolve(s.client, baseURL, id, "auto", 5)
+	result := credimi.ResolveCredential(s.client, baseURL, id, "auto", 5)
 	if result.Status != "ok" {
 		return nil, result, extractionError(result.Error)
 	}
@@ -239,7 +240,7 @@ func (s *server) extractCredimiVerification(input string) (any, any, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	result := presentation.Resolve(s.client, baseURL, id, "auto", "auto", defaultTimeout)
+	result := credimi.ResolveVerification(s.client, baseURL, id, "auto", "auto")
 	if result.Status != "ok" {
 		return nil, result, presentationError(result.Error)
 	}

@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/forkbombeu/eudi-conformance-evidence/cmd/internal/credimi"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/credoffer"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/discovery"
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/output"
@@ -121,7 +122,7 @@ func RunExtraction(r io.Reader, client *http.Client, opts Options) (*output.Coll
 
 	// Resolve presentation requests in parallel
 	presResults := make([]*presentation.Result, len(disc.PresentationRequestSteps))
-	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Timeout, opts.Parallelism, presResults)
+	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Parallelism, presResults)
 
 	// Fetch issuer metadata for successful credential offers
 	for _, r := range offerResults {
@@ -174,7 +175,7 @@ func RunExtractionSteps(steps []discovery.Step, client *http.Client, opts Option
 	resolveOffers(client, opts.CredimiBaseURL, disc.CredentialOfferSteps, opts.IDEncoding, opts.MaxDepth, opts.Parallelism, offerResults)
 
 	presResults := make([]*presentation.Result, len(disc.PresentationRequestSteps))
-	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Timeout, opts.Parallelism, presResults)
+	resolvePresentations(client, opts.CredimiBaseURL, disc.PresentationRequestSteps, opts.IDEncoding, opts.PostStrategy, opts.Parallelism, presResults)
 
 	for _, r := range offerResults {
 		if r.Status == "ok" && r.CredentialOffer != nil {
@@ -213,7 +214,7 @@ func resolveOffers(client *http.Client, baseURL string, steps []discovery.Step, 
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			r := credoffer.Resolve(client, baseURL, s.CredentialID, idEncoding, maxDepth)
+			r := credimi.ResolveCredential(client, baseURL, s.CredentialID, idEncoding, maxDepth)
 			r.StepID = s.StepID
 			results[idx] = r
 		}(i, step)
@@ -221,7 +222,7 @@ func resolveOffers(client *http.Client, baseURL string, steps []discovery.Step, 
 	wg.Wait()
 }
 
-func resolvePresentations(client *http.Client, baseURL string, steps []discovery.Step, idEncoding, postStrategy string, timeout time.Duration, parallelism int, results []*presentation.Result) {
+func resolvePresentations(client *http.Client, baseURL string, steps []discovery.Step, idEncoding, postStrategy string, parallelism int, results []*presentation.Result) {
 	sem := make(chan struct{}, parallelism)
 	var wg sync.WaitGroup
 
@@ -232,7 +233,7 @@ func resolvePresentations(client *http.Client, baseURL string, steps []discovery
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			r := presentation.Resolve(client, baseURL, s.UseCaseID, idEncoding, postStrategy, timeout)
+			r := credimi.ResolveVerification(client, baseURL, s.UseCaseID, idEncoding, postStrategy)
 			r.StepID = s.StepID
 			results[idx] = r
 		}(i, step)

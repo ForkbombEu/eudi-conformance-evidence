@@ -8,6 +8,8 @@ EUDI Conformance Evidence extracts durable protocol context from credential offe
 
 This is a reusable Go module with CLI and embedded web adapters. It resolves credential offers, issuer and authorization-server metadata, presentation requests, and JWT/JWS payloads while using bounded HTTP access for the web interface.
 
+As a library, `credoffer.ResolveDeeplink` and `presentation.ResolveDeeplink` resolve a credential or verification deeplink the caller already holds; the library never contacts Credimi. Only the CLI and web UI fetch deeplinks from a Credimi instance (`cmd/internal/credimi`), because they run outside Credimi and receive record IDs or Credimi URLs.
+
 ## HOW to run
 
 ```sh
