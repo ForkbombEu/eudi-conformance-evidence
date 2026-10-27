@@ -1,0 +1,16 @@
+{
+  "assertions": [],
+  "closedAt": "2026-10-27T23:35:12.310Z",
+  "errors": [
+    {
+      "location": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/review/collection-error.issuance.spec.ts",
+      "message": "collection failed on purpose",
+      "origin": "module"
+    }
+  ],
+  "phase": "issuance",
+  "runId": "0ca3ecdc-2b7d-41f8-9d58-06f128f48b61",
+  "sessionId": "be64b618-46c3-4fed-aaf5-91f0d97203a8",
+  "startedAt": "2026-10-27T23:35:11.325Z",
+  "status": "INCOMPLETE"
+}

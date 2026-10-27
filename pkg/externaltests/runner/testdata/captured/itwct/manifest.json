@@ -1,0 +1,345 @@
+{
+  "label": "local fixture evidence from the compiled runner, no real wallet (live SUT NOT RUN)",
+  "contract_version": "1.0",
+  "provenance": {
+    "repository": "ForkbombEu/itw-conformance-tool",
+    "commit": "058fc00d1efcb5e2839552a64a819dc8d5f7ae4e",
+    "node_version": "v22.22.1",
+    "server_command": "node apps/cli/dist/main.js serve-runner --profiles <work>/profiles.json --state-dir <work>/state --port 0 (env CREDIMI_RUNNER_TOKEN, ITWCT_SOURCE_REVISION=058fc00d1efcb5e2839552a64a819dc8d5f7ae4e)",
+    "operator_setup": "node apps/cli/dist/main.js init (run in <work>/operator; shipped config.ini template, local TA :3001 / RP :3002)",
+    "driver_script": "capture-driver.mjs (this directory)",
+    "driver_command": "node capture-driver.mjs /home/bario/itw-conformance-tool <work> <out>",
+    "captured_at": "2026-10-27T23:36:40.615Z"
+  },
+  "profiles_json": {
+    "profiles": [
+      {
+        "allowedScenarioIds": [
+          "WP_RP_HAPPY"
+        ],
+        "category": "presentation",
+        "configPath": "operator/config.ini",
+        "coverageMode": "interoperability",
+        "id": "production",
+        "initializedAssetsDir": "operator/.itw-conformance-tool"
+      }
+    ]
+  },
+  "captures": [
+    {
+      "name": "inconclusive",
+      "run_id": "301cc2a9-f5af-4d1f-9dc8-53ccc8310259",
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_RP_HAPPY"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 300000
+      },
+      "notes": "Pending interaction ACKed (driver_status=completed) and the signed Request Object fetched from the local RP (as production-composition.test.ts section B); no presentation was ever submitted.",
+      "observed": {
+        "summary_result": "inconclusive",
+        "execution_status": "completed",
+        "exit_code": 1,
+        "assertion_count": 11,
+        "native_failed_assertion_count": 9,
+        "native_suite_status": "FAILED",
+        "scenario_outcomes": [
+          {
+            "scenario_id": "WP_RP_HAPPY",
+            "verdict": "INCONCLUSIVE"
+          }
+        ],
+        "artifact_ids": [
+          "native-results"
+        ],
+        "limitations": [
+          "9 failed native assertion(s) are strict-PASS matchers of INCONCLUSIVE scenario(s): WP_RP_HAPPY."
+        ]
+      },
+      "interaction_kind": "wallet_deeplink",
+      "ack": {
+        "driver_status": "completed"
+      }
+    },
+    {
+      "name": "cancelled",
+      "run_id": "8822254c-6b21-46dd-a677-1ef1737b7913",
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_RP_HAPPY"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 300000
+      },
+      "notes": "POST /v1/runs/{id}/cancel issued while status=waiting_for_interaction (no ACK, no Request Object fetch).",
+      "observed": {
+        "summary_result": "not_tested",
+        "execution_status": "cancelled",
+        "exit_code": 1,
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "native_suite_status": "ERROR",
+        "scenario_outcomes": [],
+        "artifact_ids": [],
+        "limitations": [
+          "Native export is missing",
+          "Run was cancelled before the native suite finished; only partial evidence is available.",
+          "No native assertions were collected; the run cannot be reported as tested."
+        ]
+      },
+      "cancel_http_status": 200
+    },
+    {
+      "name": "timed_out",
+      "run_id": "49703393-0ee3-481e-91a4-cc4d8c3e1fd7",
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_RP_HAPPY"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 20000
+      },
+      "notes": "timeout_ms=20000 expired while waiting for the wallet interaction (never ACKed).",
+      "observed": {
+        "summary_result": "not_tested",
+        "execution_status": "timed_out",
+        "exit_code": 1,
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "native_suite_status": "ERROR",
+        "scenario_outcomes": [],
+        "artifact_ids": [],
+        "limitations": [
+          "Native export is missing",
+          "Run reached its deadline before the native suite finished; only partial evidence is available.",
+          "No native assertions were collected; the run cannot be reported as tested."
+        ]
+      }
+    },
+    {
+      "name": "port_conflict",
+      "run_id": "2feb09dd-e208-412a-95fa-b749f6b2c15c",
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_RP_HAPPY"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 90000
+      },
+      "notes": "Local TCP port 3001 (Trust Anchor) was occupied by a dummy listener on 127.0.0.1 before the run, so the native CLI could not start its local services.",
+      "observed": {
+        "summary_result": "not_tested",
+        "execution_status": "error",
+        "exit_code": 1,
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "native_suite_status": "ERROR",
+        "scenario_outcomes": [],
+        "artifact_ids": [],
+        "limitations": [
+          "Native export is missing"
+        ]
+      }
+    },
+    {
+      "name": "immediate_cancel",
+      "run_id": "d061522a-48eb-4888-8a19-ac29ee6af7aa",
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_RP_HAPPY"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 300000
+      },
+      "notes": "POST /v1/runs/{id}/cancel issued immediately after the 202 create response (before any interaction was pending).",
+      "observed": {
+        "summary_result": "not_tested",
+        "execution_status": "cancelled",
+        "exit_code": null,
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "native_suite_status": "ERROR",
+        "scenario_outcomes": [],
+        "artifact_ids": [],
+        "limitations": [
+          "Native export is missing",
+          "Run was cancelled before the native suite finished; only partial evidence is available.",
+          "No native assertions were collected; the run cannot be reported as tested."
+        ]
+      }
+    }
+  ],
+  "api_error_bodies": [
+    {
+      "name": "unsupported_selection",
+      "method": "POST",
+      "path": "/v1/runs",
+      "http_status": 400,
+      "request": {
+        "category": "presentation",
+        "contract_version": "1.0",
+        "parameters": {},
+        "profile_id": "production",
+        "selection": {
+          "ids": [
+            "WP_090"
+          ]
+        },
+        "target": {
+          "actor_name": "wallet-under-test",
+          "actor_type": "wallet",
+          "actor_version": "1.0.0"
+        },
+        "timeout_ms": 300000
+      }
+    },
+    {
+      "name": "result_not_found",
+      "method": "GET",
+      "path": "/v1/runs/not-a-run/result",
+      "http_status": 404,
+      "request": null
+    },
+    {
+      "name": "artifact_not_found",
+      "method": "GET",
+      "path": "/v1/runs/d061522a-48eb-4888-8a19-ac29ee6af7aa/artifacts/other",
+      "http_status": 404,
+      "request": null
+    }
+  ],
+  "not_captured": [],
+  "files": [
+    {
+      "path": "capture-driver.mjs",
+      "sha256": "c6a1e1d7cd016c1316008950d1b2b50dc37af5244dde7d8058ba7836af06d3a3",
+      "size": 13831
+    },
+    {
+      "path": "inconclusive.result.json",
+      "sha256": "2540018f3ab7601a905b8b42e1a80f155634f911adfabfe1d3485204457f1579",
+      "size": 16276
+    },
+    {
+      "path": "inconclusive.artifacts/native-results",
+      "sha256": "abe175d77deb812b20a96cd933997d58d816aee6af504866fe1d5d43cd947526",
+      "size": 8837
+    },
+    {
+      "path": "inconclusive.snapshot.json",
+      "sha256": "a99f6987c717d345f9b45d27407f110049628a960d2feb5b076b417a8ce6b7e5",
+      "size": 318
+    },
+    {
+      "path": "cancelled.cancel-response.json",
+      "sha256": "929104443b6be825cb2e23c8cbd2d35b6991bb80af658b27a51afa5bbe9213f2",
+      "size": 317
+    },
+    {
+      "path": "cancelled.result.json",
+      "sha256": "48650aa2cfeaef4fdc77bc52937ca65388b5a58abe5094361a75991e858e73fe",
+      "size": 1104
+    },
+    {
+      "path": "cancelled.snapshot.json",
+      "sha256": "929104443b6be825cb2e23c8cbd2d35b6991bb80af658b27a51afa5bbe9213f2",
+      "size": 317
+    },
+    {
+      "path": "timed_out.result.json",
+      "sha256": "b1fd8308f0d188bc476baf39e581b7b5db4b80071f154424c13f9706dbe6b7c7",
+      "size": 1111
+    },
+    {
+      "path": "timed_out.snapshot.json",
+      "sha256": "30be731bcfbb5341ba9c7cfac09d520706ee3250469ccf4c1a4396e2e9c9fdd4",
+      "size": 318
+    },
+    {
+      "path": "port_conflict.result.json",
+      "sha256": "a4792f9bc76e066cedfdc2d2d65b5b1de17ffbd395092c61b7b1f8ff35796c5c",
+      "size": 933
+    },
+    {
+      "path": "port_conflict.snapshot.json",
+      "sha256": "23fc6a94bc1bde57ece47bb889a551158cf3b1fdbbb7fec1b9a7c57f5c1d97fd",
+      "size": 314
+    },
+    {
+      "path": "immediate_cancel.result.json",
+      "sha256": "c61d157c5ffea6571883d39b60c83f6b0268c13319af285c460a332c9a8e3ac2",
+      "size": 1090
+    },
+    {
+      "path": "immediate_cancel.snapshot.json",
+      "sha256": "f00fd40a7feafe64ab59acca29bb03790b9d88436d1abf031dc30223f4d98c63",
+      "size": 317
+    },
+    {
+      "path": "api-errors/unsupported_selection.json",
+      "sha256": "bb7ff197c953aab6573952b671593604e183ee04bfe5cb59ae720619ce0350cb",
+      "size": 98
+    },
+    {
+      "path": "api-errors/result_not_found.json",
+      "sha256": "a8d9d68b9706c608312e98ce7fed7191dd05806f22f8b48d62621af7ab4dd93c",
+      "size": 64
+    },
+    {
+      "path": "api-errors/artifact_not_found.json",
+      "sha256": "07abac5acecebc62207d57ec86e3c83c5ddff599b0ed5b8d69295411253e04f2",
+      "size": 115
+    }
+  ]
+}

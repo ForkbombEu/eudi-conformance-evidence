@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "ancestorTitles": [
+        "Production teardown"
+      ],
+      "description": "check passes before teardown",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/teardown.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": "CI_930",
+      "timestamp": "2026-10-27T23:35:09.128Z",
+      "title": "[CI_930]: check passes before teardown",
+      "vitestStatus": "passed"
+    }
+  ],
+  "closedAt": "2026-10-27T23:35:09.147Z",
+  "errors": [
+    {
+      "location": "Production teardown",
+      "message": "teardown failed on purpose",
+      "origin": "suite"
+    }
+  ],
+  "phase": "issuance",
+  "runId": "63fa1818-5b27-40cf-ae96-39181b631398",
+  "sessionId": "756c0b37-bf3f-403f-b9ee-39672bd79487",
+  "startedAt": "2026-10-27T23:35:08.118Z",
+  "status": "INCOMPLETE"
+}

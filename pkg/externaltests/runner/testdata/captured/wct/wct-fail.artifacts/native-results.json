@@ -1,0 +1,69 @@
+{
+  "assertions": [
+    {
+      "ancestorTitles": [
+        "Production matrix",
+        "Requirement identifiers"
+      ],
+      "description": "bracketed requirement passes",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": "CI_900",
+      "timestamp": "2026-10-27T23:35:07.508Z",
+      "title": "[CI_900]: bracketed requirement passes",
+      "vitestStatus": "passed"
+    },
+    {
+      "ancestorTitles": [
+        "Production matrix",
+        "Requirement identifiers"
+      ],
+      "description": "duplicate requirement — first occurrence passes",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": "CI_901",
+      "timestamp": "2026-10-27T23:35:07.515Z",
+      "title": "CI_901: duplicate requirement — first occurrence passes",
+      "vitestStatus": "passed"
+    },
+    {
+      "ancestorTitles": [
+        "Production matrix",
+        "Requirement identifiers"
+      ],
+      "description": "duplicate requirement — second occurrence fails on purpose",
+      "errorMessage": "deliberate native FAIL: expected 'intentional failure' to be 'pass' // Object.is equality",
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+      "nativeStatus": "FAIL",
+      "phase": "issuance",
+      "requirementId": "CI_901",
+      "timestamp": "2026-10-27T23:35:07.516Z",
+      "title": "CI_901: duplicate requirement — second occurrence fails on purpose",
+      "vitestStatus": "failed"
+    },
+    {
+      "ancestorTitles": [
+        "Production matrix"
+      ],
+      "description": "generic assertion without a requirement id passes",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": null,
+      "timestamp": "2026-10-27T23:35:07.517Z",
+      "title": "generic assertion without a requirement id passes",
+      "vitestStatus": "passed"
+    }
+  ],
+  "closedAt": "2026-10-27T23:35:07.549Z",
+  "phase": "issuance",
+  "runId": "03e8edb4-338c-4e97-9df3-d2cbe089f025",
+  "sessionId": "a7f6b36e-94af-4e73-a098-c8e67212e4b0",
+  "startedAt": "2026-10-27T23:35:05.772Z",
+  "status": "FAILED"
+}

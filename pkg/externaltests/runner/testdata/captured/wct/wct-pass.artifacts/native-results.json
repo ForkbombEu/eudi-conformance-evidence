@@ -1,0 +1,24 @@
+{
+  "assertions": [
+    {
+      "ancestorTitles": [
+        "Clean suite"
+      ],
+      "description": "passes",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/review/passing.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": "CI_925",
+      "timestamp": "2026-10-27T23:35:10.780Z",
+      "title": "[CI_925]: passes",
+      "vitestStatus": "passed"
+    }
+  ],
+  "closedAt": "2026-10-27T23:35:10.800Z",
+  "phase": "issuance",
+  "runId": "14dfe712-9b12-4053-9bad-fb48712eb6fb",
+  "sessionId": "77e148c4-b515-40bd-839c-931b8292a414",
+  "startedAt": "2026-10-27T23:35:09.759Z",
+  "status": "PASSED"
+}

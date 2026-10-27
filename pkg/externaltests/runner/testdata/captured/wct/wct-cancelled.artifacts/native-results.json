@@ -1,0 +1,24 @@
+{
+  "assertions": [
+    {
+      "ancestorTitles": [
+        "Waiting suite"
+      ],
+      "description": "completes before the wait",
+      "errorMessage": null,
+      "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/waiting.issuance.spec.ts",
+      "nativeStatus": "PASS",
+      "phase": "issuance",
+      "requirementId": "CI_910",
+      "timestamp": "2026-10-27T23:35:13.798Z",
+      "title": "[CI_910]: completes before the wait",
+      "vitestStatus": "passed"
+    }
+  ],
+  "closedAt": null,
+  "phase": "issuance",
+  "runId": "003797f3-101c-47e3-a28c-d8c04ddfe656",
+  "sessionId": "5984e9c3-c85c-4432-ae60-1c6ba5094c11",
+  "startedAt": "2026-10-27T23:35:12.741Z",
+  "status": "OPEN"
+}

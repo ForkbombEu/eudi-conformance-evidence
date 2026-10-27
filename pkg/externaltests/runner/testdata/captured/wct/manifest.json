@@ -1,0 +1,229 @@
+{
+  "label": "Local fixture evidence from the compiled legacy runner (harmless local fixtures, closed local issuer port). Live SUT NOT RUN.",
+  "provenance": {
+    "repository": "ForkbombEu/wallet-conformance-test-fb",
+    "commit": "26f5216a8f0695c9dfd6d703361ad9bc0cffdb79",
+    "node": "v22.22.1",
+    "command": "node capture.mjs (spawns node dist/runner-api/main.js)",
+    "captured_at": "2026-10-27T23:35:21.916Z"
+  },
+  "captures": [
+    {
+      "name": "wct-fail",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "matrix"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        }
+      },
+      "files": [
+        {
+          "path": "wct-fail.result.json",
+          "sha256": "8a7de31dc53f895658a3be7beb4454d4ff659017648a4fe34b8b603566af5d3c",
+          "size": 4945
+        },
+        {
+          "path": "wct-fail.artifacts/native-results.json",
+          "sha256": "663a40499555d4007c0de1fd687e0ec38b0c6d9642d34e88bd613b2168406dfc",
+          "size": 2578
+        }
+      ],
+      "summary": {
+        "assertion_count": 4,
+        "native_failed_assertion_count": 1,
+        "result": "fail"
+      },
+      "execution_status": "completed",
+      "native_suite_status": "FAILED"
+    },
+    {
+      "name": "wct-teardown-partial",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "teardown"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        }
+      },
+      "files": [
+        {
+          "path": "wct-teardown-partial.result.json",
+          "sha256": "ade8db4b1f39e3ceda7435641eae4b3c3a6e5130832e24d302690e26fb6b2648",
+          "size": 2220
+        },
+        {
+          "path": "wct-teardown-partial.artifacts/native-results.json",
+          "sha256": "1bbdff442694b32a4f9f99d6357c44de8fbe46976032ebd9bfbee131718add2c",
+          "size": 910
+        }
+      ],
+      "summary": {
+        "assertion_count": 1,
+        "native_failed_assertion_count": 0,
+        "result": "partial"
+      },
+      "execution_status": "completed",
+      "native_suite_status": "INCOMPLETE"
+    },
+    {
+      "name": "wct-pass",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "passing"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        }
+      },
+      "files": [
+        {
+          "path": "wct-pass.result.json",
+          "sha256": "881b0edfd9c4d4586fb363ab056b276f9b7b3a157a3d38460f6d1ccabaa4e4ff",
+          "size": 1898
+        },
+        {
+          "path": "wct-pass.artifacts/native-results.json",
+          "sha256": "87b4aa0972709502a1d2c8fd8da6be121673b5beb60827e7eafbf6b70f166b71",
+          "size": 706
+        }
+      ],
+      "summary": {
+        "assertion_count": 1,
+        "native_failed_assertion_count": 0,
+        "result": "pass"
+      },
+      "execution_status": "completed",
+      "native_suite_status": "PASSED"
+    },
+    {
+      "name": "wct-collection-error",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "collection"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        }
+      },
+      "files": [
+        {
+          "path": "wct-collection-error.result.json",
+          "sha256": "9ee424eb4a758dc4c28c3f6640470d2519842c01288aef1aae9b6eec7d8bc6fd",
+          "size": 1889
+        },
+        {
+          "path": "wct-collection-error.artifacts/native-results.json",
+          "sha256": "5f9b2d19783a85e4929a8111c631ac247c4c19c4228e2d604021ba3a9213c3f8",
+          "size": 494
+        }
+      ],
+      "summary": {
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "result": "not_tested"
+      },
+      "execution_status": "error",
+      "native_suite_status": "ERROR"
+    },
+    {
+      "name": "wct-cancelled",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "waiting"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        }
+      },
+      "files": [
+        {
+          "path": "wct-cancelled.result.json",
+          "sha256": "beac7a9f9c623efb0b2bb3790c741d62d90e24c524396e2a627a0da07f593fad",
+          "size": 2187
+        },
+        {
+          "path": "wct-cancelled.artifacts/native-results.json",
+          "sha256": "da3e392f0614de17463fdd4d662646b3cf0b555b506ada8594c26c18adff632e",
+          "size": 726
+        }
+      ],
+      "summary": {
+        "assertion_count": 1,
+        "native_failed_assertion_count": 0,
+        "result": "partial"
+      },
+      "execution_status": "cancelled",
+      "native_suite_status": "OPEN"
+    },
+    {
+      "name": "wct-timed-out",
+      "request": {
+        "category": "issuance",
+        "contract_version": "1.0",
+        "profile_id": "local-fixtures",
+        "selection": {
+          "ids": [
+            "waiting"
+          ]
+        },
+        "target": {
+          "actor_name": "local-fixture-issuer",
+          "actor_type": "issuer"
+        },
+        "timeout_ms": 8000
+      },
+      "files": [
+        {
+          "path": "wct-timed-out.result.json",
+          "sha256": "90cd3ad5fd23c7ec4ea1d509bf4ee348c9561880802b3e72e15d26a3be16dd96",
+          "size": 2196
+        },
+        {
+          "path": "wct-timed-out.artifacts/native-results.json",
+          "sha256": "006f103d0cd0cee2b0df7b6e9e36103ef5bb6c86d89f55ed551aa01558316a88",
+          "size": 726
+        }
+      ],
+      "summary": {
+        "assertion_count": 1,
+        "native_failed_assertion_count": 0,
+        "result": "partial"
+      },
+      "execution_status": "timed_out",
+      "native_suite_status": "OPEN"
+    }
+  ]
+}
