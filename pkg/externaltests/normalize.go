@@ -58,8 +58,8 @@ func (e *ContextError) Error() string {
 	return "externaltests: " + e.Field + ": " + e.Message
 }
 
-// Normalize builds the v1.1 document for a parsed runner result. It performs
-// no I/O. A successful import sets the ingestion claim to pass; the external
+// Normalize builds the v1.1 document for a parsed runner result and validates
+// it against the embedded schema before returning it. It performs no I/O. A successful import sets the ingestion claim to pass; the external
 // suite outcome is reported separately in run.overall_result and
 // overall_result and is never upgraded.
 func Normalize(result *runner.RunnerResult, ctx NormalizationContext) (*ConformanceResult, error) {
@@ -120,6 +120,10 @@ func Normalize(result *runner.RunnerResult, ctx NormalizationContext) (*Conforma
 		HashManifest:       hashes,
 		Limitations:        append([]string(nil), ctx.Limitations...),
 		SourceScopeVersion: SourceScopeVersion,
+	}
+	// Never return a purported v1.1 document the schema rejects.
+	if err := ValidateNormalized(doc); err != nil {
+		return nil, err
 	}
 	return doc, nil
 }

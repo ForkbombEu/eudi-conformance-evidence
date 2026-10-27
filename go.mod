@@ -3,6 +3,7 @@ module github.com/forkbombeu/eudi-conformance-evidence
 go 1.26.4
 
 require (
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.45.0
 	go.opentelemetry.io/otel/sdk v1.45.0
