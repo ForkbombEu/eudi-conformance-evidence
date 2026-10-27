@@ -10,6 +10,8 @@ This is a reusable Go module with CLI and embedded web adapters. It resolves cre
 
 As a library, `credoffer.ResolveDeeplink` and `presentation.ResolveDeeplink` resolve a credential or verification deeplink the caller already holds; the library never contacts Credimi. Only the CLI and web UI fetch deeplinks from a Credimi instance (`cmd/internal/credimi`), because they run outside Credimi and receive record IDs or Credimi URLs.
 
+Credimi integration inputs live in `docs/credimi-integration/` (runner contract, result semantics, checkout check) and `integration/credimi/` (runner fixtures, plus the Credimi v1.1 source-of-truth schema and registries). These files are test and documentation inputs, not application configuration.
+
 ## HOW to run
 
 ```sh
