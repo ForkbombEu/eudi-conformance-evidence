@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.1",
+  "registry_version": "1.1",
+  "profile_slug": "third-party-conformance-ingestion",
+  "profile_title": "PagoPA external test result ingestion",
+  "overall_result": "partial",
+  "run": {
+    "workflow_id": "synthetic-workflow",
+    "workflow_run_id": "synthetic-temporal-run",
+    "started_at": "2026-10-27T23:35:12.437Z",
+    "finished_at": "2026-10-27T23:35:13.865Z",
+    "overall_result": "partial"
+  },
+  "target": {
+    "actor_type": "issuer",
+    "actor_name": "local-fixture-issuer",
+    "external_suite_name": "pagopa-wct",
+    "external_suite_version": "1.2.1"
+  },
+  "environment": {
+    "metadata": {
+      "external_engine_id": "pagopa-wct",
+      "external_engine_version": "1.2.1",
+      "external_engine_revision": "26f5216a8f0695c9dfd6d703361ad9bc0cffdb79",
+      "upstream_repository": "https://github.com/pagopa/wallet-conformance-test",
+      "fork_repository": "https://github.com/ForkbombEu/wallet-conformance-test-fb",
+      "external_run_id": "003797f3-101c-47e3-a28c-d8c04ddfe656",
+      "native_suite_status": "OPEN",
+      "coverage_mode": "interoperability"
+    }
+  },
+  "evidence_claim_results": [
+    {
+      "slug": "external-conformance-test-result-ingested",
+      "title": "External conformance test result is ingested and mapped",
+      "internal_id": "credimi.evidence.external.conformance_result_ingested_and_mapped.v1",
+      "result": "pass",
+      "evidence_type": [
+        "third_party_result"
+      ],
+      "evidence_artifacts": [
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/wct-cancelled.result.json",
+          "sha256": "beac7a9f9c623efb0b2bb3790c741d62d90e24c524396e2a627a0da07f593fad",
+          "mime_type": "application/json",
+          "description": "Runner result envelope (contract 1.0)"
+        },
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/native-results.json",
+          "sha256": "da3e392f0614de17463fdd4d662646b3cf0b555b506ada8594c26c18adff632e",
+          "mime_type": "application/json",
+          "description": "Native runner artifact native-results.json"
+        }
+      ],
+      "observed_outputs": {
+        "external_suite": "pagopa-wct",
+        "external_run_id": "003797f3-101c-47e3-a28c-d8c04ddfe656",
+        "profile_id": "local-fixtures",
+        "category": "issuance",
+        "selection_ids": [
+          "waiting"
+        ],
+        "execution_status": "cancelled",
+        "execution_error": "native session did not close; the suite was interrupted",
+        "exit_code": 143,
+        "external_result": "partial",
+        "native_suite_status": "OPEN",
+        "coverage_mode": "interoperability",
+        "assertion_count": 1,
+        "native_failed_assertion_count": 0,
+        "native_status_counts": {
+          "PASS": 1,
+          "FAIL": 0,
+          "NOT_REACHED": 0
+        },
+        "mapping_status": "unmapped",
+        "unmapped_requirement_ids": [
+          "CI_910"
+        ],
+        "sessions": [
+          {
+            "id": "5984e9c3-c85c-4432-ae60-1c6ba5094c11",
+            "status": "OPEN"
+          }
+        ],
+        "scenario_outcomes": [],
+        "assertions": [
+          {
+            "assertion_id": "assertion-0",
+            "requirement_id": "CI_910",
+            "full_title": "Waiting suite \u003e [CI_910]: completes before the wait",
+            "ancestor_titles": [
+              "Waiting suite"
+            ],
+            "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/waiting.issuance.spec.ts",
+            "phase": "issuance",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          }
+        ],
+        "runner_limitations": [
+          "Native session did not close: only assertions reported before the interruption are included",
+          "Run cancelled by request; native results are incomplete"
+        ]
+      },
+      "limitations": [
+        "Ingestion succeeded. The external test result was partial. No normative assertion mapping was applied.",
+        "PagoPA pagopa-wct results are recorded under the existing third-party ingestion profile; this is not an OpenID Foundation certification or an official IPZS validation.",
+        "Interoperability coverage: no Italian IT-Wallet assertion matrix was applied.",
+        "Execution ended as cancelled: the external evidence is incomplete."
+      ]
+    }
+  ],
+  "raw_evidence_refs": {
+    "external_test_output_refs": [
+      "artifact:synthetic/wct-cancelled.result.json",
+      "artifact:synthetic/native-results.json"
+    ]
+  },
+  "hash_manifest": [
+    {
+      "ref": "artifact:synthetic/wct-cancelled.result.json",
+      "sha256": "beac7a9f9c623efb0b2bb3790c741d62d90e24c524396e2a627a0da07f593fad",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Runner result envelope (contract 1.0)"
+    },
+    {
+      "ref": "artifact:synthetic/native-results.json",
+      "sha256": "da3e392f0614de17463fdd4d662646b3cf0b555b506ada8594c26c18adff632e",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Native runner artifact native-results.json"
+    }
+  ],
+  "source_scope_version": "1.1"
+}

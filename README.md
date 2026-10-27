@@ -12,6 +12,8 @@ As a library, `credoffer.ResolveDeeplink` and `presentation.ResolveDeeplink` res
 
 `pkg/externaltests/runner` parses PagoPA runner result envelopes (contract 1.0, engines `pagopa-itwct` and `pagopa-wct`) offline. `runner.Parse` takes bytes the caller already collected, bounded to 16 MiB. It validates identity, selection, statuses and counts, and keeps the exact source bytes so they can be hashed. It performs no network or process I/O, and a valid cancelled or error envelope is incomplete evidence, not a parse error.
 
+`externaltests.Normalize` turns a parsed result plus the caller's real provenance into a Credimi conformance result document (schema v1.1). The caller supplies the workflow IDs, plus stored references and hashes for the raw result and any collected artifacts. The document uses the existing `third-party-conformance-ingestion` profile. Its `external-conformance-test-result-ingested` claim is `pass` when ingestion succeeded, while `run.overall_result` carries the external suite's own outcome, so an ingested failed suite stays `fail`. Native assertions, duplicate and unmapped requirement IDs, and scenario outcomes are kept in `observed_outputs`. No normative references are invented.
+
 Credimi integration inputs live in `docs/credimi-integration/` (runner contract, result semantics, checkout check) and `integration/credimi/` (runner fixtures, plus the Credimi v1.1 source-of-truth schema and registries). These files are test and documentation inputs, not application configuration.
 
 ## HOW to run

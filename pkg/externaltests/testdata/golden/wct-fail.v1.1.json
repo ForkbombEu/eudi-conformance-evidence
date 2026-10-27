@@ -1,0 +1,174 @@
+{
+  "schema_version": "1.1",
+  "registry_version": "1.1",
+  "profile_slug": "third-party-conformance-ingestion",
+  "profile_title": "PagoPA external test result ingestion",
+  "overall_result": "fail",
+  "run": {
+    "workflow_id": "synthetic-workflow",
+    "workflow_run_id": "synthetic-temporal-run",
+    "started_at": "2026-10-27T23:35:05.459Z",
+    "finished_at": "2026-10-27T23:35:07.699Z",
+    "overall_result": "fail"
+  },
+  "target": {
+    "actor_type": "issuer",
+    "actor_name": "local-fixture-issuer",
+    "external_suite_name": "pagopa-wct",
+    "external_suite_version": "1.2.1"
+  },
+  "environment": {
+    "metadata": {
+      "external_engine_id": "pagopa-wct",
+      "external_engine_version": "1.2.1",
+      "external_engine_revision": "26f5216a8f0695c9dfd6d703361ad9bc0cffdb79",
+      "upstream_repository": "https://github.com/pagopa/wallet-conformance-test",
+      "fork_repository": "https://github.com/ForkbombEu/wallet-conformance-test-fb",
+      "external_run_id": "03e8edb4-338c-4e97-9df3-d2cbe089f025",
+      "native_suite_status": "FAILED",
+      "coverage_mode": "interoperability"
+    }
+  },
+  "evidence_claim_results": [
+    {
+      "slug": "external-conformance-test-result-ingested",
+      "title": "External conformance test result is ingested and mapped",
+      "internal_id": "credimi.evidence.external.conformance_result_ingested_and_mapped.v1",
+      "result": "pass",
+      "evidence_type": [
+        "third_party_result"
+      ],
+      "evidence_artifacts": [
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/wct-fail.result.json",
+          "sha256": "8a7de31dc53f895658a3be7beb4454d4ff659017648a4fe34b8b603566af5d3c",
+          "mime_type": "application/json",
+          "description": "Runner result envelope (contract 1.0)"
+        },
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/native-results.json",
+          "sha256": "663a40499555d4007c0de1fd687e0ec38b0c6d9642d34e88bd613b2168406dfc",
+          "mime_type": "application/json",
+          "description": "Native runner artifact native-results.json"
+        }
+      ],
+      "observed_outputs": {
+        "external_suite": "pagopa-wct",
+        "external_run_id": "03e8edb4-338c-4e97-9df3-d2cbe089f025",
+        "profile_id": "local-fixtures",
+        "category": "issuance",
+        "selection_ids": [
+          "matrix"
+        ],
+        "execution_status": "completed",
+        "exit_code": 1,
+        "external_result": "fail",
+        "native_suite_status": "FAILED",
+        "coverage_mode": "interoperability",
+        "assertion_count": 4,
+        "native_failed_assertion_count": 1,
+        "native_status_counts": {
+          "PASS": 3,
+          "FAIL": 1,
+          "NOT_REACHED": 0
+        },
+        "mapping_status": "unmapped",
+        "unmapped_requirement_ids": [
+          "CI_900",
+          "CI_901"
+        ],
+        "sessions": [
+          {
+            "id": "a7f6b36e-94af-4e73-a098-c8e67212e4b0",
+            "status": "FAILED"
+          }
+        ],
+        "scenario_outcomes": [],
+        "assertions": [
+          {
+            "assertion_id": "assertion-0",
+            "requirement_id": "CI_900",
+            "full_title": "Production matrix \u003e Requirement identifiers \u003e [CI_900]: bracketed requirement passes",
+            "ancestor_titles": [
+              "Production matrix",
+              "Requirement identifiers"
+            ],
+            "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+            "phase": "issuance",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          },
+          {
+            "assertion_id": "assertion-1",
+            "requirement_id": "CI_901",
+            "full_title": "Production matrix \u003e Requirement identifiers \u003e CI_901: duplicate requirement — first occurrence passes",
+            "ancestor_titles": [
+              "Production matrix",
+              "Requirement identifiers"
+            ],
+            "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+            "phase": "issuance",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          },
+          {
+            "assertion_id": "assertion-2",
+            "requirement_id": "CI_901",
+            "full_title": "Production matrix \u003e Requirement identifiers \u003e CI_901: duplicate requirement — second occurrence fails on purpose",
+            "ancestor_titles": [
+              "Production matrix",
+              "Requirement identifiers"
+            ],
+            "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+            "phase": "issuance",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "deliberate native FAIL: expected 'intentional failure' to be 'pass' // Object.is equality"
+          },
+          {
+            "assertion_id": "assertion-3",
+            "full_title": "Production matrix \u003e generic assertion without a requirement id passes",
+            "ancestor_titles": [
+              "Production matrix"
+            ],
+            "file": "/home/bario/wallet-conformance-test-fb/tests/runner-api/fixtures/production/matrix.issuance.spec.ts",
+            "phase": "issuance",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          }
+        ],
+        "runner_limitations": []
+      },
+      "limitations": [
+        "Ingestion succeeded. The external test result failed. No normative assertion mapping was applied.",
+        "PagoPA pagopa-wct results are recorded under the existing third-party ingestion profile; this is not an OpenID Foundation certification or an official IPZS validation.",
+        "Interoperability coverage: no Italian IT-Wallet assertion matrix was applied."
+      ]
+    }
+  ],
+  "raw_evidence_refs": {
+    "external_test_output_refs": [
+      "artifact:synthetic/wct-fail.result.json",
+      "artifact:synthetic/native-results.json"
+    ]
+  },
+  "hash_manifest": [
+    {
+      "ref": "artifact:synthetic/wct-fail.result.json",
+      "sha256": "8a7de31dc53f895658a3be7beb4454d4ff659017648a4fe34b8b603566af5d3c",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Runner result envelope (contract 1.0)"
+    },
+    {
+      "ref": "artifact:synthetic/native-results.json",
+      "sha256": "663a40499555d4007c0de1fd687e0ec38b0c6d9642d34e88bd613b2168406dfc",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Native runner artifact native-results.json"
+    }
+  ],
+  "source_scope_version": "1.1"
+}

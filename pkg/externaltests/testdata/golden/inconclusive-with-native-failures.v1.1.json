@@ -1,0 +1,289 @@
+{
+  "schema_version": "1.1",
+  "registry_version": "1.1",
+  "profile_slug": "third-party-conformance-ingestion",
+  "profile_title": "PagoPA external test result ingestion",
+  "overall_result": "inconclusive",
+  "run": {
+    "workflow_id": "synthetic-workflow",
+    "workflow_run_id": "synthetic-temporal-run",
+    "started_at": "2026-10-27T23:35:06.612Z",
+    "finished_at": "2026-10-27T23:36:15.575Z",
+    "overall_result": "inconclusive"
+  },
+  "target": {
+    "actor_type": "wallet",
+    "actor_name": "wallet-under-test",
+    "actor_version": "1.0.0",
+    "external_suite_name": "pagopa-itwct",
+    "external_suite_version": "0.0.1"
+  },
+  "environment": {
+    "metadata": {
+      "external_engine_id": "pagopa-itwct",
+      "external_engine_version": "0.0.1",
+      "external_engine_revision": "058fc00d1efcb5e2839552a64a819dc8d5f7ae4e",
+      "upstream_repository": "https://github.com/pagopa/itw-conformance-tool",
+      "fork_repository": "https://github.com/ForkbombEu/itw-conformance-tool",
+      "external_run_id": "301cc2a9-f5af-4d1f-9dc8-53ccc8310259",
+      "native_suite_status": "FAILED",
+      "coverage_mode": "interoperability"
+    }
+  },
+  "evidence_claim_results": [
+    {
+      "slug": "external-conformance-test-result-ingested",
+      "title": "External conformance test result is ingested and mapped",
+      "internal_id": "credimi.evidence.external.conformance_result_ingested_and_mapped.v1",
+      "result": "pass",
+      "evidence_type": [
+        "third_party_result"
+      ],
+      "evidence_artifacts": [
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/inconclusive.result.json",
+          "sha256": "2540018f3ab7601a905b8b42e1a80f155634f911adfabfe1d3485204457f1579",
+          "mime_type": "application/json",
+          "description": "Runner result envelope (contract 1.0)"
+        },
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/native-results",
+          "sha256": "abe175d77deb812b20a96cd933997d58d816aee6af504866fe1d5d43cd947526",
+          "mime_type": "application/json",
+          "description": "Native runner artifact native-results"
+        }
+      ],
+      "observed_outputs": {
+        "external_suite": "pagopa-itwct",
+        "external_run_id": "301cc2a9-f5af-4d1f-9dc8-53ccc8310259",
+        "profile_id": "production",
+        "category": "presentation",
+        "selection_ids": [
+          "WP_RP_HAPPY"
+        ],
+        "execution_status": "completed",
+        "exit_code": 1,
+        "external_result": "inconclusive",
+        "native_suite_status": "FAILED",
+        "coverage_mode": "interoperability",
+        "assertion_count": 11,
+        "native_failed_assertion_count": 9,
+        "native_status_counts": {
+          "PASS": 2,
+          "FAIL": 9,
+          "NOT_REACHED": 0
+        },
+        "mapping_status": "unmapped",
+        "unmapped_requirement_ids": [
+          "WP_076",
+          "WP_082",
+          "WP_091",
+          "WP_092",
+          "WP_093",
+          "WP_093a",
+          "WP_093b",
+          "WP_093c",
+          "WP_094"
+        ],
+        "sessions": [
+          {
+            "id": "85e83cbd-119b-48d1-8e38-f472a087173c",
+            "status": "FAILED"
+          }
+        ],
+        "scenario_outcomes": [
+          {
+            "scenario_id": "WP_RP_HAPPY",
+            "verdict": "INCONCLUSIVE"
+          }
+        ],
+        "assertions": [
+          {
+            "assertion_id": "a0001",
+            "requirement_id": "WP_076",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_076]: Wallet Instance obtains the Remote Presentation URL from a deep link",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0002",
+            "requirement_id": "WP_082",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_082]: Wallet Instance retrieves the Request Object via HTTP GET to the request_uri endpoint",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0003",
+            "requirement_id": "WP_091",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_091]: Wallet Instance sends the Authorization Response via HTTP POST to the response_uri endpoint",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0004",
+            "requirement_id": "WP_092",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_092]: Wallet Instance encrypts the Authorization Response with the Relying Party key",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0005",
+            "requirement_id": "WP_093",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_093]: Wallet Instance builds the vp_token with the Request Object state and one entry per credential",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0006",
+            "requirement_id": "WP_093a",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_093a]: Wallet Instance includes at least one SD-JWT disclosure in the vp_token",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0007",
+            "requirement_id": "WP_093b",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_093b]: Wallet Instance appends a Key Binding JWT to every SD-JWT presentation",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0008",
+            "requirement_id": "WP_093c",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_093c]: Wallet Instance uses the required Key Binding JWT header and payload format",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0009",
+            "requirement_id": "WP_094",
+            "full_title": "Test Cases for Presentation Phase \u003e Happy path — full remote presentation flow \u003e [WP_094]: Wallet Instance follows the redirect_uri returned by the Relying Party",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Happy path — full remote presentation flow"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "FAIL",
+            "vitest_status": "failed",
+            "error_message": "Required protocol events were not observed: rp.presentation_response.received, vp_token.validation.succeeded, rp.redirect.followed: expected 'INCONCLUSIVE' to be 'PASS' // Object.is equality"
+          },
+          {
+            "assertion_id": "a0010",
+            "full_title": "Test Cases for Presentation Phase \u003e Relying Party fault cleanup \u003e deactivated faults leave the Relying Party serving its nominal Entity Configuration",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Relying Party fault cleanup"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          },
+          {
+            "assertion_id": "a0011",
+            "full_title": "Test Cases for Presentation Phase \u003e Relying Party fault cleanup \u003e a later scenario can still activate a fresh Relying Party fault profile",
+            "ancestor_titles": [
+              "Test Cases for Presentation Phase",
+              "Relying Party fault cleanup"
+            ],
+            "file": "packages/conformance/src/tests/matrix/presentation.test.ts",
+            "phase": "presentation",
+            "native_status": "PASS",
+            "vitest_status": "passed"
+          }
+        ],
+        "runner_limitations": [
+          "9 failed native assertion(s) are strict-PASS matchers of INCONCLUSIVE scenario(s): WP_RP_HAPPY."
+        ]
+      },
+      "limitations": [
+        "Ingestion succeeded. The external test result was inconclusive. No normative assertion mapping was applied.",
+        "PagoPA pagopa-itwct results are recorded under the existing third-party ingestion profile; this is not an OpenID Foundation certification or an official IPZS validation.",
+        "Interoperability coverage: no Italian IT-Wallet assertion matrix was applied.",
+        "The external result is inconclusive; 9 native FAIL assertions are retained as reported and are not counted as an independent conformance failure."
+      ]
+    }
+  ],
+  "raw_evidence_refs": {
+    "external_test_output_refs": [
+      "artifact:synthetic/inconclusive.result.json",
+      "artifact:synthetic/native-results"
+    ]
+  },
+  "hash_manifest": [
+    {
+      "ref": "artifact:synthetic/inconclusive.result.json",
+      "sha256": "2540018f3ab7601a905b8b42e1a80f155634f911adfabfe1d3485204457f1579",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Runner result envelope (contract 1.0)"
+    },
+    {
+      "ref": "artifact:synthetic/native-results",
+      "sha256": "abe175d77deb812b20a96cd933997d58d816aee6af504866fe1d5d43cd947526",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Native runner artifact native-results"
+    }
+  ],
+  "source_scope_version": "1.1"
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.1",
+  "registry_version": "1.1",
+  "profile_slug": "third-party-conformance-ingestion",
+  "profile_title": "PagoPA external test result ingestion",
+  "overall_result": "not_tested",
+  "run": {
+    "workflow_id": "synthetic-workflow",
+    "workflow_run_id": "synthetic-temporal-run",
+    "started_at": "2026-10-26T12:00:00Z",
+    "finished_at": "2026-10-26T12:00:02Z",
+    "overall_result": "not_tested"
+  },
+  "target": {
+    "actor_type": "wallet",
+    "actor_name": "Synthetic wallet",
+    "actor_version": "fixture",
+    "external_suite_name": "pagopa-itwct",
+    "external_suite_version": "synthetic-fixture"
+  },
+  "environment": {
+    "metadata": {
+      "external_engine_id": "pagopa-itwct",
+      "external_engine_version": "synthetic-fixture",
+      "external_engine_revision": "550266b3541329644100eb9917687394da8e23f3",
+      "upstream_repository": "https://github.com/pagopa/itw-conformance-tool",
+      "fork_repository": "https://github.com/ForkbombEu/itw-conformance-tool",
+      "external_run_id": "11111111-1111-4111-8111-111111111111",
+      "native_suite_status": "PASSED",
+      "coverage_mode": "it_wallet_profile"
+    }
+  },
+  "evidence_claim_results": [
+    {
+      "slug": "external-conformance-test-result-ingested",
+      "title": "External conformance test result is ingested and mapped",
+      "internal_id": "credimi.evidence.external.conformance_result_ingested_and_mapped.v1",
+      "result": "pass",
+      "evidence_type": [
+        "third_party_result"
+      ],
+      "evidence_artifacts": [
+        {
+          "type": "external_test_result",
+          "ref": "artifact:synthetic/itwct-empty.json",
+          "sha256": "7820d807296c6d6523cc8794e4bccef51844f7c965771f69ac7794ecb93288cf",
+          "mime_type": "application/json",
+          "description": "Runner result envelope (contract 1.0)"
+        }
+      ],
+      "observed_outputs": {
+        "external_suite": "pagopa-itwct",
+        "external_run_id": "11111111-1111-4111-8111-111111111111",
+        "profile_id": "wallet-presentation-dev",
+        "category": "presentation",
+        "selection_ids": [
+          "WP_RP_HAPPY"
+        ],
+        "execution_status": "completed",
+        "exit_code": 0,
+        "external_result": "not_tested",
+        "native_suite_status": "PASSED",
+        "coverage_mode": "it_wallet_profile",
+        "assertion_count": 0,
+        "native_failed_assertion_count": 0,
+        "native_status_counts": {
+          "PASS": 0,
+          "FAIL": 0,
+          "NOT_REACHED": 0
+        },
+        "mapping_status": "unmapped",
+        "unmapped_requirement_ids": [],
+        "sessions": [
+          {
+            "id": "synthetic-native-session",
+            "status": "PASSED"
+          }
+        ],
+        "scenario_outcomes": [],
+        "assertions": [],
+        "runner_limitations": [
+          "Synthetic fixture; not a conformance execution."
+        ]
+      },
+      "limitations": [
+        "Ingestion succeeded. The external test result did not test anything. No normative assertion mapping was applied.",
+        "PagoPA pagopa-itwct results are recorded under the existing third-party ingestion profile; this is not an OpenID Foundation certification or an official IPZS validation."
+      ]
+    }
+  ],
+  "raw_evidence_refs": {
+    "external_test_output_refs": [
+      "artifact:synthetic/itwct-empty.json"
+    ]
+  },
+  "hash_manifest": [
+    {
+      "ref": "artifact:synthetic/itwct-empty.json",
+      "sha256": "7820d807296c6d6523cc8794e4bccef51844f7c965771f69ac7794ecb93288cf",
+      "algorithm": "sha256",
+      "mime_type": "application/json",
+      "description": "Runner result envelope (contract 1.0)"
+    }
+  ],
+  "source_scope_version": "1.1"
+}
