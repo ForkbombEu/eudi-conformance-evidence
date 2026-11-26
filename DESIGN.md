@@ -170,19 +170,18 @@ viewBox, path data and gradient node ids.
 |---|---|---|
 | `credimi_logo-transp.svg` | 941 × 196 | **Wordmark** — icon plus the word "CREDIMI", dark text. Light backgrounds. Design-system equivalent: `credimi_logo.svg`. |
 | `credimi_logo-transp_white.svg` | 941 × 196 | **Wordmark, white**. Indigo / dark backgrounds, footer, cover slides. Design-system equivalent: `credimi_logo_white.svg`. |
-| `credimi_logo.svg` | 248 × 248 | **Mark / symbol**, dark. Square use: favicon, social avatar, app icon, inline banner glyph. Design-system equivalent: `credimi_logo_mark.svg`. |
+| `credimi_logo.svg` | 248 × 248 | **Mark / symbol**, dark. Topbar, favicon, social avatar, app icon, inline banner glyph. Design-system equivalent: `credimi_logo_mark.svg`. |
 | `credimi_logo_negative.svg` | 248 × 248 | **Mark / symbol**, negative. Dark backgrounds. |
 
-The four are not interchangeable. Use the mark on light backgrounds and the
-negative mark on dark ones; use the wordmark whenever the brand name has to be
-legible.
+The four are not interchangeable. Use the mark on light backgrounds, including the product topbar, and the negative mark on dark ones. Use the wordmark where the brand name must be legible outside the topbar.
 
 ### Minimum size
 
-- **Wordmark**: 22px tall in product UI (topbar), 28px in marketing headers.
-- **Mark**: 32px square minimum. Below that, keep the vector at @1x — don't
-  rasterize. The one sanctioned exception is the 16px inline mark in the
-  Credimi Extras banner ([§13](#13-credimi-extras-cross-promotional-banner)).
+- **Wordmark**: 22px tall in product UI outside the topbar, 28px in marketing headers.
+- **Mark**: 32px square minimum, including in the topbar. Below that, keep the
+  vector at @1x — don't rasterize. The one sanctioned exception is the 16px
+  inline mark in the Credimi Extras banner
+  ([§13](#13-credimi-extras-cross-promotional-banner)).
 
 ### Clear space
 
@@ -450,7 +449,7 @@ really needs to "lift" — usually it doesn't.
 
 ### Container
 
-- **Max content width**: 1280px (`--max-width`), centered.
+- **Max content width**: 1440px (`--max-width`), centered.
 - **Page side padding**: 24–32px on desktop, 16px on mobile.
 - **Topbar**: sticky, white, 1px hairline bottom border, no shadow, 56px tall
   (`--topbar-height`).
@@ -458,6 +457,19 @@ really needs to "lift" — usually it doesn't.
   bottom strip reading "Proudly developed by ForkBomb BV". The only sanctioned
   use of translucency — the bottom banner strip in
   [§13](#13-credimi-extras-cross-promotional-banner) rides on this same fill.
+
+### Topbar identity
+
+Pair the 32px `credimi_logo.svg` mark with the project title. Do not use either
+wordmark in the topbar. The mark's `alt` text must be `Credimi`; the visible
+project title distinguishes the application.
+
+```html
+<a class="topbar-brand" href="/">
+  <img class="topbar-logo" src="/logos/credimi_logo.svg" alt="Credimi">
+  <span class="topbar-project-title">Project title</span>
+</a>
+```
 
 ### Page chrome pattern
 

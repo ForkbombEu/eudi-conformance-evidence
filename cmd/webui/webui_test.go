@@ -76,6 +76,9 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("index did not contain the Credimi favicon")
 	}
+	if !strings.Contains(index.Body.String(), `<a class="topbar-brand" href="/"><img class="topbar-logo" src="/static/credimi_logo.svg" alt="Credimi" width="32" height="32"><span class="topbar-project-title">EUDI Conformance Evidence</span></a>`) {
+		t.Fatal("index topbar did not link the Credimi mark and product name to the homepage")
+	}
 	if !strings.Contains(index.Body.String(), `href="https://github.com/ForkbombEu/eudi-conformance-evidence"`) ||
 		!strings.Contains(index.Body.String(), `target="_blank"`) ||
 		!strings.Contains(index.Body.String(), `rel="noopener noreferrer"`) {

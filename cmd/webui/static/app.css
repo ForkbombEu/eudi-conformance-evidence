@@ -3,8 +3,11 @@ html { background: var(--brand-primary); }
 body { min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1; }
 
-.topbar-brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
-.topbar-product { color: var(--fg); font-size: var(--fs-sm); font-weight: 600; white-space: nowrap; }
+/* The topbar identity (32px mark + project title, DESIGN.md §8) comes from brand/style.css;
+   the app adds a focus ring and keeps the title on one line. */
+.topbar-brand { min-width: 0; border-radius: var(--radius); }
+.topbar-brand:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.topbar-project-title { white-space: nowrap; }
 .topbar-nav { flex-wrap: wrap; justify-content: flex-end; }
 
 /* Extractor forms sit directly on the section wash (DESIGN.md §8), one per tab. */
@@ -92,7 +95,7 @@ main { flex: 1; }
 }
 
 @media (max-width: 480px) {
-  .topbar-product { display: none; }
+  .topbar-project-title { display: none; }
   .topbar-nav { width: 100%; justify-content: space-between; }
   .topbar-nav a { padding: var(--space-1); }
 }

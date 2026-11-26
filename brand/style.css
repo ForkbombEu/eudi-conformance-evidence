@@ -233,12 +233,25 @@ pre {
   gap: var(--space-6);
 }
 
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.topbar-brand:hover { color: var(--fg); }
+
 .topbar-logo {
-  height: 22px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
 
-.topbar-logo img { height: 100%; width: auto; }
+.topbar-project-title {
+  font: 600 var(--fs-md)/var(--lh-md) var(--font-sans);
+}
 
 .topbar-nav {
   display: flex;
