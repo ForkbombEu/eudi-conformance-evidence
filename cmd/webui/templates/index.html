@@ -14,78 +14,113 @@
   </div>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand-lockup" href="/"><img class="brand-logo" src="/static/credimi_logo.svg" alt="Credimi"><span>EUDI Conformance Evidence</span></a>
-      <div class="topbar-actions"><span class="status-chip status-wallet">protocol tools</span><a class="btn btn-outline btn-md" href="/docs">API docs</a><a class="btn btn-outline btn-md" href="/openapi.yaml">OpenAPI</a><a class="btn btn-outline btn-md help-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a></div>
+      <div class="topbar-brand">
+        <a class="topbar-logo" href="/"><img src="/static/credimi_logo-transp.svg" alt="Credimi"></a>
+        <span class="topbar-product">EUDI Conformance Evidence</span>
+      </div>
+      <nav class="topbar-nav" aria-label="Primary navigation">
+        <a href="/">Home</a>
+        <a href="/docs">API docs</a>
+        <a href="/openapi.yaml">OpenAPI</a>
+        <a href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a>
+      </nav>
     </div>
   </header>
   <main>
-    <section class="hero">
+    <section class="hero-band" aria-labelledby="page-title">
       <div class="hero-inner">
-        <h1>EUDI Issuer/Verifier metatadata extractor</h1>
-        <p>Extract issuer, authorization-server, and verifier metadata from credential offers and presentation requests.</p>
+        <header class="section-intro">
+          <div class="section-intro-heading"><h1 class="section-intro-title" id="page-title">EUDI Issuer/Verifier metadata extractor</h1></div>
+          <div class="section-intro-description"><p>Extract issuer, authorization-server, and verifier metadata from credential offers and presentation requests.</p></div>
+        </header>
       </div>
     </section>
-    <section class="page-content container">
-      <div class="section-header"><h2>Choose an extractor</h2><span class="count-chip">2</span></div>
-      <div class="extractor-grid">
-        <form class="card extractor-card" action="/extract" method="post">
-          <div><span class="badge badge-issuer">issuer</span><h3>Extract Issuer and Authorization Metadata</h3><p>Paste a credential offer or a Credimi Hub credential URL.</p></div>
-          <label for="issuer-metadata">Credential offer or Credimi credential</label>
-          <textarea id="issuer-metadata" name="input" required placeholder="openid-credential-offer://?credential_offer=... or https://credimi.io/hub/credentials/...">{{if eq .Kind "issuer-metadata"}}{{.Input}}{{end}}</textarea>
-          <input type="hidden" name="kind" value="issuer-metadata">
-          {{if eq .Kind "issuer-metadata"}}
-            <details class="result-disclosure {{if .Error}}result-error{{end}}" open>
-              <summary>{{if .Error}}Extraction failed{{else}}Issuer and authorization metadata extracted{{end}}</summary>
-              {{if .Error}}
-                <p class="result-message">{{.Error}}</p>
-              {{else}}
-                <div class="result-toolbar"><span>{{.Source}}</span></div>
-                <div class="metadata-result-grid">
-                  <section class="metadata-result-box">
-                    <div class="metadata-result-heading"><span class="badge badge-issuer">issuer</span><h4>Credential issuer metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-metadata-output">Copy JSON</button></div>
-                    <pre id="issuer-metadata-output">{{.IssuerMetadataOutput}}</pre>
-                  </section>
-                  <section class="metadata-result-box">
-                    <div class="metadata-result-heading"><span class="badge badge-verifier">authorization server</span><h4>Authorization server metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="authorization-server-output">Copy JSON</button></div>
-                    <pre id="authorization-server-output">{{.AuthorizationServerOutput}}</pre>
-                  </section>
-                  {{if .Details}}
-                    <section class="metadata-result-box">
-                      <div class="metadata-result-heading"><span class="badge badge-wallet">resolution</span><h4>Resolution details</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-resolution-details-output">Copy JSON</button></div>
-                      <pre id="issuer-resolution-details-output">{{.Details}}</pre>
-                    </section>
+    <section class="page-section" aria-labelledby="extractors-title">
+      <div class="container">
+        <header class="section-intro">
+          <div class="section-intro-heading"><h2 class="section-intro-title" id="extractors-title">Choose an extractor</h2><span class="count-chip">2</span></div>
+          <div class="section-intro-description"><p>Paste a credential offer or presentation request to collect the protocol context needed for conformance evidence.</p></div>
+        </header>
+        <div class="tabs" role="tablist" aria-label="Extractor type">
+          <button class="tab-btn" id="issuer-tab" type="button" role="tab" aria-selected="{{if eq .Kind "presentation-metadata"}}false{{else}}true{{end}}" aria-controls="issuer-panel" tabindex="{{if eq .Kind "presentation-metadata"}}-1{{else}}0{{end}}">Issuer</button>
+          <button class="tab-btn" id="verifier-tab" type="button" role="tab" aria-selected="{{if eq .Kind "presentation-metadata"}}true{{else}}false{{end}}" aria-controls="verifier-panel" tabindex="{{if eq .Kind "presentation-metadata"}}0{{else}}-1{{end}}">Verifier</button>
+        </div>
+        <div class="extractor-panel" id="issuer-panel" role="tabpanel" aria-labelledby="issuer-tab"{{if eq .Kind "presentation-metadata"}} hidden{{end}}>
+          <form class="card extractor-card" action="/extract" method="post">
+            <div class="extractor-card-intro">
+              <div class="panel-head"><span class="badge badge-issuer">issuer</span><h3 class="subsection-heading">Issuer and authorization metadata</h3></div>
+              <p>Paste a credential offer or a Credimi Hub credential URL.</p>
+            </div>
+            <label class="form-field" for="issuer-metadata"><span class="label">Credential offer or Credimi credential</span><textarea id="issuer-metadata" name="input" required placeholder="openid-credential-offer://?credential_offer=... or https://credimi.io/hub/credentials/...">{{if eq .Kind "issuer-metadata"}}{{.Input}}{{end}}</textarea></label>
+            <input type="hidden" name="kind" value="issuer-metadata">
+            {{if eq .Kind "issuer-metadata"}}
+              <details class="disclosure result-disclosure {{if .Error}}result-error{{end}}" open>
+                <summary>{{if .Error}}Extraction failed{{else}}Issuer and authorization metadata extracted{{end}}</summary>
+                <div class="disclosure-body">
+                  {{if .Error}}
+                    <p class="result-message">{{.Error}}</p>
+                  {{else}}
+                    <div class="result-toolbar"><span>{{.Source}}</span></div>
+                    <div class="metadata-result-grid">
+                      <section class="metadata-result-box">
+                        <div class="metadata-result-heading"><span class="badge badge-issuer">issuer</span><h4>Credential issuer metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-metadata-output">Copy JSON</button></div>
+                        <pre id="issuer-metadata-output">{{.IssuerMetadataOutput}}</pre>
+                      </section>
+                      <section class="metadata-result-box">
+                        <div class="metadata-result-heading"><span class="badge badge-verifier">authorization server</span><h4>Authorization server metadata</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="authorization-server-output">Copy JSON</button></div>
+                        <pre id="authorization-server-output">{{.AuthorizationServerOutput}}</pre>
+                      </section>
+                      {{if .Details}}
+                        <section class="metadata-result-box">
+                          <div class="metadata-result-heading"><span class="badge badge-wallet">resolution</span><h4>Resolution details</h4><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="issuer-resolution-details-output">Copy JSON</button></div>
+                          <pre id="issuer-resolution-details-output">{{.Details}}</pre>
+                        </section>
+                      {{end}}
+                    </div>
                   {{end}}
                 </div>
-              {{end}}
-            </details>
-          {{end}}
-          <button class="btn btn-primary btn-lg" type="submit">Extract metadata</button>
-        </form>
-        <form class="card extractor-card" action="/extract" method="post">
-          <div><span class="badge badge-verifier">verifier</span><h3>Extract Presentation request metadata (DCQL)</h3><p>Paste a presentation request or a Credimi Hub use-case verification URL.</p></div>
-          <label for="presentation-metadata">Presentation request or Credimi verification</label>
-          <textarea id="presentation-metadata" name="input" required placeholder="openid4vp://authorize?request_uri=... or https://credimi.io/hub/use_cases_verifications/...">{{if eq .Kind "presentation-metadata"}}{{.Input}}{{end}}</textarea>
-          <input type="hidden" name="kind" value="presentation-metadata">
-          {{if eq .Kind "presentation-metadata"}}
-            <details class="result-disclosure {{if .Error}}result-error{{end}}" open>
-              <summary>{{if .Error}}Extraction failed{{else}}DCQL extracted{{end}}</summary>
-              {{if .Error}}
-                <p class="result-message">{{.Error}}</p>
-              {{else}}
-                <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-output">Copy JSON</button></div>
-                <pre id="presentation-output">{{.Output}}</pre>
-                {{if .Details}}<details class="resolution-details" open><summary><span>Resolution details</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-resolution-details-output">Copy JSON</button></summary><pre id="presentation-resolution-details-output">{{.Details}}</pre></details>{{end}}
-              {{end}}
-            </details>
-          {{end}}
-          <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
-        </form>
+              </details>
+            {{end}}
+            <button class="btn btn-primary btn-lg" type="submit">Extract metadata</button>
+          </form>
+        </div>
+        <div class="extractor-panel" id="verifier-panel" role="tabpanel" aria-labelledby="verifier-tab"{{if ne .Kind "presentation-metadata"}} hidden{{end}}>
+          <form class="card extractor-card" action="/extract" method="post">
+            <div class="extractor-card-intro">
+              <div class="panel-head"><span class="badge badge-verifier">verifier</span><h3 class="subsection-heading">Presentation request metadata</h3></div>
+              <p>Paste a presentation request or a Credimi Hub use-case verification URL.</p>
+            </div>
+            <label class="form-field" for="presentation-metadata"><span class="label">Presentation request or Credimi verification</span><textarea id="presentation-metadata" name="input" required placeholder="openid4vp://authorize?request_uri=... or https://credimi.io/hub/use_cases_verifications/...">{{if eq .Kind "presentation-metadata"}}{{.Input}}{{end}}</textarea></label>
+            <input type="hidden" name="kind" value="presentation-metadata">
+            {{if eq .Kind "presentation-metadata"}}
+              <details class="disclosure result-disclosure {{if .Error}}result-error{{end}}" open>
+                <summary>{{if .Error}}Extraction failed{{else}}DCQL extracted{{end}}</summary>
+                <div class="disclosure-body">
+                  {{if .Error}}
+                    <p class="result-message">{{.Error}}</p>
+                  {{else}}
+                    <div class="result-toolbar"><span>{{.Source}}</span><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-output">Copy JSON</button></div>
+                    <pre id="presentation-output">{{.Output}}</pre>
+                    {{if .Details}}<details class="disclosure resolution-details" open><summary>Resolution details</summary><div class="disclosure-body"><div class="result-toolbar"><button class="btn btn-outline btn-md copy-button" type="button" data-copy-target="presentation-resolution-details-output">Copy JSON</button></div><pre id="presentation-resolution-details-output">{{.Details}}</pre></div></details>{{end}}
+                  {{end}}
+                </div>
+              </details>
+            {{end}}
+            <button class="btn btn-primary btn-lg" type="submit">Extract DCQL</button>
+          </form>
+        </div>
       </div>
     </section>
   </main>
-  <footer class="footer"><div class="footer-inner"><div class="footer-content"><div class="footer-brand"><img class="footer-logo" src="/static/credimi_logo_negative.svg" alt="Credimi"><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div><a class="footer-link fork-link" href="https://github.com/ForkbombEu/eudi-conformance-evidence">Repository</a></div></div><div class="credimi-extras-bar-footer">
-    <div class="credimi-extras-bar-inner">This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with <a class="credimi-extras-wordmark-link" href="https://credimi.io" target="_blank" rel="noopener"><img class="credimi-extras-wordmark" src="/static/credimi_logo-transp_white.svg" alt="Credimi"></a></div>
-  </div></footer>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-content">
+        <div class="footer-brand"><img class="footer-logo" src="/static/credimi_logo_negative.svg" alt="Credimi"><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div>
+        <div class="footer-links"><div class="footer-col"><h5>Resources</h5><a href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a></div></div>
+      </div>
+    </div>
+    <div class="credimi-extras-bar-footer"><div class="credimi-extras-bar-inner">This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with <a class="credimi-extras-wordmark-link" href="https://credimi.io" target="_blank" rel="noopener"><img class="credimi-extras-wordmark" src="/static/credimi_logo-transp_white.svg" alt="Credimi"></a></div></div>
+  </footer>
   <script src="/static/app.js"></script>
 </body>
 </html>{{end}}

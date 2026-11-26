@@ -8,6 +8,8 @@ EUDI Conformance Evidence extracts durable protocol context from credential offe
 
 This is a reusable Go module with CLI and embedded web adapters. It resolves credential offers, issuer and authorization-server metadata, presentation requests, and JWT/JWS payloads while using bounded HTTP access for the web interface.
 
+
+The web interface uses the vendored Credimi Extras foundation in `brand/`, with byte-identical embedded copies under `cmd/webui/static/`. Its indigo hero, responsive navigation, controls, result disclosures, and API documentation shell share the same visual system.
 As a library, `credoffer.ResolveDeeplink` and `presentation.ResolveDeeplink` resolve a credential or verification deeplink the caller already holds; the library never contacts Credimi. Only the CLI and web UI fetch deeplinks from a Credimi instance (`cmd/internal/credimi`), because they run outside Credimi and receive record IDs or Credimi URLs.
 
 `pkg/externaltests/runner` parses PagoPA runner result envelopes (contract 1.0, engines `pagopa-itwct` and `pagopa-wct`) offline. `runner.Parse` takes bytes the caller already collected, bounded to 16 MiB. It validates identity, selection, statuses and counts, and keeps the exact source bytes so they can be hashed. It performs no network or process I/O, and a valid cancelled or error envelope is incomplete evidence, not a parse error.

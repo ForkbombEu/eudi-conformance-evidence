@@ -18,25 +18,27 @@ import (
 	"github.com/forkbombeu/eudi-conformance-evidence/pkg/presentation"
 )
 
-func TestRuntimeCredimiAssetsMatchHITLInputs(t *testing.T) {
-	tests := []struct{ runtime, input string }{
-		{"static/style.css", "../../HITL/style.css"},
-		{"static/credimi_logo.svg", "../../HITL/credimi_logo.svg"},
-		{"static/credimi_logo_negative.svg", "../../HITL/credimi_logo_negative.svg"},
-		{"static/credimi_logo-transp.svg", "../../HITL/credimi_logo-transp.svg"},
-		{"static/credimi_logo-transp_white.svg", "../../HITL/credimi_logo-transp_white.svg"},
+func TestRuntimeBrandAssetsMatchCanonicalSources(t *testing.T) {
+	tests := []struct{ runtime, source string }{
+		{"static/style.css", "../../brand/style.css"},
+		{"static/credimi_logo.svg", "../../brand/logos/credimi_logo.svg"},
+		{"static/credimi_logo_negative.svg", "../../brand/logos/credimi_logo_negative.svg"},
+		{"static/credimi_logo-transp.svg", "../../brand/logos/credimi_logo-transp.svg"},
+		{"static/credimi_logo-transp_white.svg", "../../brand/logos/credimi_logo-transp_white.svg"},
+		{"static/fonts/InterVariable.ttf", "../../brand/fonts/InterVariable.ttf"},
+		{"static/fonts/SourceCodeProVariable.ttf", "../../brand/fonts/SourceCodeProVariable.ttf"},
 	}
 	for _, test := range tests {
 		runtime, err := os.ReadFile(test.runtime)
 		if err != nil {
 			t.Fatal(err)
 		}
-		input, err := os.ReadFile(test.input)
+		source, err := os.ReadFile(test.source)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(runtime, input) {
-			t.Fatalf("%s differs from %s", test.runtime, test.input)
+		if !bytes.Equal(runtime, source) {
+			t.Fatalf("%s differs from %s", test.runtime, test.source)
 		}
 	}
 }
@@ -49,11 +51,18 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if index.Code != http.StatusOK {
 		t.Fatalf("index status = %d", index.Code)
 	}
-	if !strings.Contains(index.Body.String(), "EUDI Issuer/Verifier metatadata extractor") {
+	if !strings.Contains(index.Body.String(), "EUDI Issuer/Verifier metadata extractor") {
 		t.Fatal("index did not contain extractor launcher")
 	}
 	if strings.Count(index.Body.String(), `class="card extractor-card"`) != 2 {
 		t.Fatal("index did not contain exactly two extractor cards")
+	}
+	if !strings.Contains(index.Body.String(), `role="tablist" aria-label="Extractor type"`) ||
+		!strings.Contains(index.Body.String(), `id="issuer-tab"`) ||
+		!strings.Contains(index.Body.String(), `id="verifier-tab"`) ||
+		!strings.Contains(index.Body.String(), `id="issuer-panel" role="tabpanel"`) ||
+		!strings.Contains(index.Body.String(), `id="verifier-panel" role="tabpanel"`) {
+		t.Fatal("index did not contain accessible issuer and verifier tabs")
 	}
 	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("index did not contain the Credimi favicon")
@@ -82,6 +91,9 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	}
 	if !strings.Contains(docs.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("docs did not contain the same-origin favicon")
+	}
+	if !strings.Contains(docs.Body.String(), `href="/static/style.css"`) {
+		t.Fatal("docs did not load the Credimi brand stylesheet")
 	}
 	if strings.Contains(docs.Body.String(), "<header") || strings.Contains(docs.Body.String(), "<main") || strings.Contains(docs.Body.String(), "EUDI Issuer/Verifier") {
 		t.Fatal("docs contained application page chrome")
@@ -178,7 +190,7 @@ func TestExtractCredentialOffer(t *testing.T) {
 	input := "openid-credential-offer://?credential_offer=" + url.QueryEscape(offer)
 	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
-	assertResultContains(t, response, `class="result-disclosure`)
+	assertResultContains(t, response, `class="disclosure result-disclosure`)
 	body := response.Body.String()
 	if strings.Count(body, `class="metadata-result-box"`) != 3 {
 		t.Fatalf("expected three metadata result boxes: %s", body)
@@ -229,8 +241,13 @@ func TestExtractPresentationRequest(t *testing.T) {
 	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
 	assertResultContains(t, response, `data-copy-target="presentation-output"`)
-	assertResultContains(t, response, `class="resolution-details" open`)
+	assertResultContains(t, response, `class="disclosure resolution-details" open`)
 	assertResultContains(t, response, `data-copy-target="presentation-resolution-details-output"`)
+	body := response.Body.String()
+	if !strings.Contains(body, `id="issuer-panel" role="tabpanel" aria-labelledby="issuer-tab" hidden`) ||
+		strings.Contains(body, `id="verifier-panel" role="tabpanel" aria-labelledby="verifier-tab" hidden`) {
+		t.Fatal("presentation extraction did not preserve the verifier tab as active")
+	}
 }
 
 func TestExtractPresentationRequestURI(t *testing.T) {

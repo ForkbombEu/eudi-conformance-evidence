@@ -47,7 +47,7 @@ func run(args []string) error {
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  extract-context  Extract protocol context from pipeline input")
-		fmt.Fprintln(os.Stderr, "  web              Start the browser extraction interface")
+		fmt.Fprintln(os.Stderr, "  web              Start the Credimi-branded browser extraction interface")
 		fmt.Fprintln(os.Stderr, "  version          Print version")
 		return fmt.Errorf("no command provided")
 	}

@@ -27,12 +27,12 @@ import (
 
 const (
 	maxFormBytes     = 64 << 10
-	siteTitle        = "EUDI Issuer/Verifier metatadata extractor"
+	siteTitle        = "EUDI Issuer/Verifier metadata extractor"
 	maxResponseBytes = 4 << 20
 	defaultTimeout   = 30 * time.Second
 )
 
-//go:embed templates/*.html static/*.css static/*.js static/*.svg static/*.yaml
+//go:embed templates/*.html static/*.css static/*.js static/*.svg static/*.yaml static/fonts/*.ttf
 var assets embed.FS
 
 type server struct {

@@ -1,7 +1,7 @@
 console.log(
   "%cEUDI Evidence%c protocol context extractor",
-  "background:#312060;color:#fff;padding:5px 9px;font-weight:800;border-radius:6px 0 0 6px;",
-  "background:#f1e9f7;color:#22172f;padding:5px 9px;font-weight:700;border-radius:0 6px 6px 0;",
+  "background:#220E7E;color:#FAFAFA;padding:5px 9px;font-weight:800;border-radius:6px 0 0 6px;",
+  "background:#EEEAFE;color:#2F294B;padding:5px 9px;font-weight:700;border-radius:0 6px 6px 0;",
 );
 
 for (const button of document.querySelectorAll("[data-copy-target]")) {
@@ -14,5 +14,31 @@ for (const button of document.querySelectorAll("[data-copy-target]")) {
     const label = button.textContent;
     button.textContent = "Copied";
     window.setTimeout(() => { button.textContent = label; }, 1200);
+  });
+}
+
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+
+function activateTab(tab) {
+  for (const candidate of tabs) {
+    const selected = candidate === tab;
+    candidate.setAttribute("aria-selected", String(selected));
+    candidate.tabIndex = selected ? 0 : -1;
+    document.getElementById(candidate.getAttribute("aria-controls"))?.toggleAttribute("hidden", !selected);
+  }
+}
+
+for (const [index, tab] of tabs.entries()) {
+  tab.addEventListener("click", () => activateTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    let nextIndex;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    tabs[nextIndex].focus();
+    activateTab(tabs[nextIndex]);
   });
 }
