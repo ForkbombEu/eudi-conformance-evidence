@@ -20,13 +20,23 @@ Credimi integration inputs live in `docs/credimi-integration/` (runner contract,
 
 ## HOW to run
 
+Start the local browser UI:
+
 ```sh
-go test ./...
-go build -o bin/eudi-conformance-evidence .
-./bin/eudi-conformance-evidence web --addr :8080
+mise run dev
 ```
 
 Open `http://127.0.0.1:8080`. The API documentation is at `/docs` and its OpenAPI 3.1 document is `/openapi.yaml`.
+
+Useful development commands:
+
+| Command | Purpose |
+| --- | --- |
+| `mise run test` | Run the Go test suite |
+| `mise run lint` | Run static checks |
+| `mise run fmt` | Format Go sources |
+| `mise run build` | Build `bin/eudi-conformance-evidence` |
+| `mise run coverage` | Enforce the configured coverage threshold |
 
 ## Quick GUI guide
 

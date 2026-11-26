@@ -2,3 +2,27 @@
 go = "1.26.4"
 task = "latest"
 node = "latest"
+
+[tasks.dev]
+description = "Start the browser extraction interface on localhost:8080"
+run = "go run . web --addr :8080"
+
+[tasks.test]
+description = "Run the Go test suite"
+run = "task test"
+
+[tasks.lint]
+description = "Run static checks"
+run = "task lint"
+
+[tasks.fmt]
+description = "Format Go sources"
+run = "task fmt"
+
+[tasks.build]
+description = "Build the CLI binary"
+run = "task build"
+
+[tasks.coverage]
+description = "Run tests with the configured coverage threshold"
+run = "task coverage-check"
