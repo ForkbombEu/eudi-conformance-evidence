@@ -1,0 +1,41 @@
+{{define "chrome-head"}}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/credimi_logo.svg">
+  <link rel="stylesheet" href="/static/style.css">
+{{end}}
+
+{{define "chrome-top"}}
+  <div class="credimi-extras-bar">
+    <div class="credimi-extras-bar-inner"><img class="credimi-extras-mark" src="/static/credimi_logo.svg" alt="" aria-hidden="true" width="16" height="16"> This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with <a href="https://credimi.io" target="_blank" rel="noopener">Credimi</a></div>
+  </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">
+        <a class="topbar-logo" href="/"><img src="/static/credimi_logo-transp.svg" alt="Credimi"></a>
+        <span class="topbar-product">EUDI Conformance Evidence</span>
+      </div>
+      <nav class="topbar-nav" aria-label="Primary navigation">
+        <a href="/">Home</a>
+        <a href="/docs">API docs</a>
+        <a href="/openapi.yaml">OpenAPI</a>
+        <a href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a>
+      </nav>
+    </div>
+  </header>
+{{end}}
+
+{{define "chrome-footer"}}
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-content">
+        <div class="footer-brand"><img class="footer-logo" src="/static/credimi_logo_negative.svg" alt="Credimi"><p>Protocol context extraction for EUDI Wallet interoperability evidence.</p></div>
+        <div class="footer-links"><div class="footer-col"><h5>Resources</h5><a href="https://github.com/ForkbombEu/eudi-conformance-evidence" target="_blank" rel="noopener noreferrer">Repository</a></div></div>
+      </div>
+    </div>
+    <div class="footer-sub-bar">Proudly developed by ForkBomb BV</div>
+    <div class="credimi-extras-bar-footer"><div class="credimi-extras-bar-inner">This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with <a class="credimi-extras-wordmark-link" href="https://credimi.io" target="_blank" rel="noopener"><img class="credimi-extras-wordmark" src="/static/credimi_logo-transp_white.svg" alt="Credimi"></a></div></div>
+  </footer>
+  <script src="/static/app.js"></script>
+{{end}}

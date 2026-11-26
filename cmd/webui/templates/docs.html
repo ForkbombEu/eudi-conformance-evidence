@@ -1,16 +1,34 @@
 {{define "docs.html"}}<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{.Title}}</title>
-  <link rel="icon" type="image/svg+xml" href="/static/credimi_logo.svg">
-  <link rel="stylesheet" href="/static/style.css">
+{{template "chrome-head" .}}
   <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements@9.0.0/styles.min.css">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-  <elements-api apiDescriptionUrl="/openapi.yaml" router="hash" layout="responsive" tryItCredentialsPolicy="same-origin"></elements-api>
+{{template "chrome-top" .}}
+  <main>
+    <section class="hero-band" aria-labelledby="page-title">
+      <div class="hero-inner">
+        <header class="section-intro">
+          <div class="section-intro-heading"><h1 class="section-intro-title" id="page-title">API documentation</h1></div>
+          <div class="section-intro-description"><p>OpenAPI 3.1 reference for the EUDI Conformance Evidence web API. The raw document is at <a href="/openapi.yaml">/openapi.yaml</a>.</p></div>
+        </header>
+      </div>
+    </section>
+    <section class="page-section page-section-white" aria-labelledby="reference-title">
+      <div class="container">
+        <header class="section-intro">
+          <div class="section-intro-heading"><h2 class="section-intro-title" id="reference-title">API reference</h2></div>
+          <div class="section-intro-description"><p>Every public endpoint with its schemas. Try It sends requests to this server.</p></div>
+        </header>
+        <div class="api-reference">
+          <elements-api apiDescriptionUrl="/openapi.yaml" router="hash" layout="responsive" tryItCredentialsPolicy="same-origin"></elements-api>
+        </div>
+      </div>
+    </section>
+  </main>
+{{template "chrome-footer" .}}
   <script src="https://unpkg.com/@stoplight/elements@9.0.0/web-components.min.js"></script>
 </body>
 </html>{{end}}

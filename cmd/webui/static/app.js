@@ -10,11 +10,16 @@ for (const button of document.querySelectorAll("[data-copy-target]")) {
     event.stopPropagation();
     const target = document.getElementById(button.dataset.copyTarget);
     if (!target) return;
-    await navigator.clipboard.writeText(target.textContent ?? "");
-    const label = button.textContent;
-    button.textContent = "Copied";
-    window.setTimeout(() => { button.textContent = label; }, 1200);
+    const value = target instanceof HTMLTextAreaElement ? target.value : target.textContent ?? "";
+    await navigator.clipboard.writeText(value);
+    const label = button.getAttribute("aria-label") ?? "Copy to clipboard";
+    button.setAttribute("aria-label", "Copied");
+    window.setTimeout(() => { button.setAttribute("aria-label", label); }, 1200);
   });
+}
+
+for (const button of document.querySelectorAll("[data-dismiss-alert]")) {
+  button.addEventListener("click", () => button.closest(".alert")?.setAttribute("hidden", ""));
 }
 
 const tabs = [...document.querySelectorAll('[role="tab"]')];

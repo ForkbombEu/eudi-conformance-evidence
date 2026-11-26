@@ -64,3 +64,9 @@ If unsure:
 - location: repository root
 - evidence: `Taskfile.yml` defines `lint` and `lint:design`, but no formatting task or formatter is defined.
 - rationale: `BARIO.md` requires formatting through a repository-defined formatter before commits.
+
+- id: hitl-0003
+- observation: The canonical design inputs moved from `HITL/` to `brand/` and diverge from the frozen brief.
+- location: `brand/`, `HITL/01-harmonize-credimi-extras.md`, `HITL/style.css`
+- evidence: The brief names `HITL/style.css` canonical and requires byte-equality tests against it. `DESIGN.md` (vendored from `ForkbombEu/credimi-extras-template`) names `brand/style.css` canonical; it differs from `HITL/style.css`, and the runtime-copy tests now compare against `brand/`. `HITL/style.css` and the `HITL/` logos remain in the repository unused.
+- rationale: The frozen brief and the template's asset layout disagree. Either the brief is superseded and the unused `HITL/` assets can go, or the move should be reverted. Only a human can decide.

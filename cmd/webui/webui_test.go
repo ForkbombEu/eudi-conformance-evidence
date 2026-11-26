@@ -51,11 +51,12 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if index.Code != http.StatusOK {
 		t.Fatalf("index status = %d", index.Code)
 	}
-	if !strings.Contains(index.Body.String(), "EUDI Issuer/Verifier metadata extractor") {
+	if !strings.Contains(index.Body.String(), "EUDI issuer/verifier metadata extractor") {
 		t.Fatal("index did not contain extractor launcher")
 	}
-	if strings.Count(index.Body.String(), `class="card extractor-card"`) != 2 {
-		t.Fatal("index did not contain exactly two extractor cards")
+	if strings.Contains(index.Body.String(), `class="card`) ||
+		strings.Count(index.Body.String(), `class="extractor-form"`) != 2 {
+		t.Fatal("index did not contain two uncarded extractor forms")
 	}
 	if !strings.Contains(index.Body.String(), `role="tablist" aria-label="Extractor type"`) ||
 		!strings.Contains(index.Body.String(), `id="issuer-tab"`) ||
@@ -63,6 +64,14 @@ func TestIndexAndStaticAssets(t *testing.T) {
 		!strings.Contains(index.Body.String(), `id="issuer-panel" role="tabpanel"`) ||
 		!strings.Contains(index.Body.String(), `id="verifier-panel" role="tabpanel"`) {
 		t.Fatal("index did not contain accessible issuer and verifier tabs")
+	}
+	if strings.Contains(index.Body.String(), `class="badge`) {
+		t.Fatal("index contained extractor tags")
+	}
+	if strings.Contains(index.Body.String(), "Issuer and authorization metadata") ||
+		strings.Contains(index.Body.String(), "Presentation request metadata") ||
+		strings.Contains(index.Body.String(), `class="form-row"`) {
+		t.Fatal("index did not contain title-free vertical extractor forms")
 	}
 	if !strings.Contains(index.Body.String(), `href="/static/credimi_logo.svg"`) {
 		t.Fatal("index did not contain the Credimi favicon")
@@ -76,6 +85,9 @@ func TestIndexAndStaticAssets(t *testing.T) {
 		!strings.Contains(index.Body.String(), `<a href="https://credimi.io" target="_blank" rel="noopener">Credimi</a>`) ||
 		!strings.Contains(index.Body.String(), `src="/static/credimi_logo-transp_white.svg" alt="Credimi"`) {
 		t.Fatal("index did not contain both Credimi Extras banner strips")
+	}
+	if !strings.Contains(index.Body.String(), `<div class="footer-sub-bar">Proudly developed by ForkBomb BV</div>`) {
+		t.Fatal("index footer did not contain the ForkBomb sub-bar")
 	}
 	if !strings.Contains(index.Body.String(), `href="/docs"`) {
 		t.Fatal("index did not contain the API documentation link")
@@ -95,8 +107,11 @@ func TestIndexAndStaticAssets(t *testing.T) {
 	if !strings.Contains(docs.Body.String(), `href="/static/style.css"`) {
 		t.Fatal("docs did not load the Credimi brand stylesheet")
 	}
-	if strings.Contains(docs.Body.String(), "<header") || strings.Contains(docs.Body.String(), "<main") || strings.Contains(docs.Body.String(), "EUDI Issuer/Verifier") {
-		t.Fatal("docs contained application page chrome")
+	if strings.Count(docs.Body.String(), "This app is part of <strong>Credimi Extras</strong>. Automate all your EUDI testing with") != 2 ||
+		!strings.Contains(docs.Body.String(), `class="topbar"`) ||
+		!strings.Contains(docs.Body.String(), `class="hero-band"`) ||
+		!strings.Contains(docs.Body.String(), `class="footer-sub-bar"`) {
+		t.Fatal("docs did not carry the Credimi Extras page chrome")
 	}
 	docsCSP := docs.Header().Get("Content-Security-Policy")
 	if !strings.Contains(docsCSP, "https://unpkg.com") || !strings.Contains(docsCSP, "'unsafe-inline'") {
@@ -190,10 +205,10 @@ func TestExtractCredentialOffer(t *testing.T) {
 	input := "openid-credential-offer://?credential_offer=" + url.QueryEscape(offer)
 	response := postExtraction(t, issuer.Client(), "issuer-metadata", input)
 	assertResultContains(t, response, "credential_endpoint")
-	assertResultContains(t, response, `class="disclosure result-disclosure`)
+	assertResultContains(t, response, `class="result-output-section"`)
 	body := response.Body.String()
-	if strings.Count(body, `class="metadata-result-box"`) != 3 {
-		t.Fatalf("expected three metadata result boxes: %s", body)
+	if strings.Count(body, `class="result-output-section"`) != 3 {
+		t.Fatalf("expected three open result output sections: %s", body)
 	}
 	issuerIndex := strings.Index(body, "Credential issuer metadata")
 	authorizationIndex := strings.Index(body, "Authorization server metadata")
@@ -201,9 +216,12 @@ func TestExtractCredentialOffer(t *testing.T) {
 	if issuerIndex < 0 || authorizationIndex < 0 || detailsIndex < 0 || issuerIndex > authorizationIndex || authorizationIndex > detailsIndex {
 		t.Fatalf("metadata result order was not issuer, authorization server, resolution details: %s", body)
 	}
-	assertResultContains(t, response, `data-copy-target="issuer-metadata-output"`)
-	assertResultContains(t, response, `data-copy-target="authorization-server-output"`)
-	assertResultContains(t, response, `data-copy-target="issuer-resolution-details-output"`)
+	if strings.Count(body, `aria-label="Copy to clipboard"`) != 3 ||
+		!strings.Contains(body, `<textarea id="issuer-metadata-output" readonly`) ||
+		!strings.Contains(body, `<textarea id="authorization-server-output" readonly`) ||
+		!strings.Contains(body, `<textarea id="issuer-resolution-details-output" readonly`) {
+		t.Fatal("issuer extraction did not contain icon-only copy controls and text-area output")
+	}
 	assertResultContains(t, response, "authorization_endpoint")
 }
 
@@ -238,10 +256,9 @@ func TestExtractCredimiCredential(t *testing.T) {
 func TestExtractPresentationRequest(t *testing.T) {
 	input := `{"client_id":"verifier","dcql_query":{"credentials":[{"id":"pid"}]}}`
 	response := postExtraction(t, http.DefaultClient, "presentation-metadata", input)
-	assertResultContains(t, response, "credentials")
 	assertResultContains(t, response, "pid")
 	assertResultContains(t, response, `data-copy-target="presentation-output"`)
-	assertResultContains(t, response, `class="disclosure resolution-details" open`)
+	assertResultContains(t, response, `class="result-output-section"`)
 	assertResultContains(t, response, `data-copy-target="presentation-resolution-details-output"`)
 	body := response.Body.String()
 	if !strings.Contains(body, `id="issuer-panel" role="tabpanel" aria-labelledby="issuer-tab" hidden`) ||
@@ -291,8 +308,12 @@ func TestExtractRejectsMissingDCQL(t *testing.T) {
 	if response.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusUnprocessableEntity)
 	}
-	if !strings.Contains(response.Body.String(), "no dcql_query") {
-		t.Fatalf("error result did not explain the missing DCQL query: %s", response.Body.String())
+	if !strings.Contains(response.Body.String(), `class="alert alert-destructive alert-floating" role="alert"`) ||
+		!strings.Contains(response.Body.String(), "no dcql_query") {
+		t.Fatalf("error result did not explain the missing DCQL query in a floating alert: %s", response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), `id="presentation-output"`) {
+		t.Fatal("failed extraction rendered an empty result output")
 	}
 }
 
@@ -315,6 +336,11 @@ func TestExtractRejectsInvalidFormInput(t *testing.T) {
 	unknownKind := postExtraction(t, http.DefaultClient, "other", "{}")
 	if unknownKind.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("unknown kind status = %d", unknownKind.Code)
+	}
+	// An unknown kind matches neither tab, so the failure must still surface page-wide.
+	if !strings.Contains(unknownKind.Body.String(), `class="alert alert-destructive alert-floating"`) ||
+		!strings.Contains(unknownKind.Body.String(), `unknown extraction type`) {
+		t.Fatalf("unknown kind error was not shown: %s", unknownKind.Body.String())
 	}
 }
 

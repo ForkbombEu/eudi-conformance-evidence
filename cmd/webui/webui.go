@@ -27,7 +27,7 @@ import (
 
 const (
 	maxFormBytes     = 64 << 10
-	siteTitle        = "EUDI Issuer/Verifier metadata extractor"
+	siteTitle        = "EUDI issuer/verifier metadata extractor"
 	maxResponseBytes = 4 << 20
 	defaultTimeout   = 30 * time.Second
 )
@@ -44,13 +44,11 @@ type pageData struct {
 	Title                     string
 	Kind                      string
 	Input                     string
-	Source                    string
 	Output                    string
 	IssuerMetadataOutput      string
 	AuthorizationServerOutput string
 	Details                   string
 	Error                     string
-	StatusText                string
 }
 
 // Run starts the web interface.
@@ -134,7 +132,7 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := pageData{Title: siteTitle, Kind: kind, Input: input, StatusText: "resolved"}
+	data := pageData{Title: siteTitle, Kind: kind, Input: input}
 	var output any
 	var details any
 	var err error
@@ -142,18 +140,14 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 	switch kind {
 	case "issuer-metadata":
 		if isCredimiHubURL(input, "credentials") {
-			data.Source = "Credimi credential"
 			output, details, err = s.extractCredimiCredential(input)
 		} else {
-			data.Source = "Credential offer"
 			output, details, err = s.extractCredentialOffer(input)
 		}
 	case "presentation-metadata":
 		if isCredimiHubURL(input, "use_cases_verifications") {
-			data.Source = "Credimi use-case verification"
 			output, details, err = s.extractCredimiVerification(input)
 		} else {
-			data.Source = "Presentation request"
 			output, details, err = s.extractPresentationRequest(input)
 		}
 	default:
@@ -162,7 +156,6 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		data.Error = err.Error()
-		data.StatusText = "failed"
 		s.render(w, http.StatusUnprocessableEntity, "index.html", data)
 		return
 	}
@@ -170,7 +163,6 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 	data.Output, err = prettyJSON(output)
 	if err != nil {
 		data.Error = err.Error()
-		data.StatusText = "failed"
 		s.render(w, http.StatusInternalServerError, "index.html", data)
 		return
 	}
@@ -178,7 +170,6 @@ func (s *server) extract(w http.ResponseWriter, r *http.Request) {
 		data.IssuerMetadataOutput, data.AuthorizationServerOutput, err = issuerMetadataDisplay(output)
 		if err != nil {
 			data.Error = err.Error()
-			data.StatusText = "failed"
 			s.render(w, http.StatusInternalServerError, "index.html", data)
 			return
 		}

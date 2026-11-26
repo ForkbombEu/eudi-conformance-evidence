@@ -8,8 +8,8 @@ EUDI Conformance Evidence extracts durable protocol context from credential offe
 
 This is a reusable Go module with CLI and embedded web adapters. It resolves credential offers, issuer and authorization-server metadata, presentation requests, and JWT/JWS payloads while using bounded HTTP access for the web interface.
 
+The web interface follows [DESIGN.md](DESIGN.md), the Credimi Extras design specification vendored from [`ForkbombEu/credimi-extras-template`](https://github.com/ForkbombEu/credimi-extras-template). Its canonical assets live in `brand/`, with byte-identical embedded copies under `cmd/webui/static/`; [SPECS.md](SPECS.md) records their locations and hashes. Every page, including the API documentation, carries the same banner, topbar, hero band and footer.
 
-The web interface uses the vendored Credimi Extras foundation in `brand/`, with byte-identical embedded copies under `cmd/webui/static/`. Its indigo hero, responsive navigation, controls, result disclosures, and API documentation shell share the same visual system.
 As a library, `credoffer.ResolveDeeplink` and `presentation.ResolveDeeplink` resolve a credential or verification deeplink the caller already holds; the library never contacts Credimi. Only the CLI and web UI fetch deeplinks from a Credimi instance (`cmd/internal/credimi`), because they run outside Credimi and receive record IDs or Credimi URLs.
 
 `pkg/externaltests/runner` parses PagoPA runner result envelopes (contract 1.0, engines `pagopa-itwct` and `pagopa-wct`) offline. `runner.Parse` takes bytes the caller already collected, bounded to 16 MiB. It validates identity, selection, statuses and counts, and keeps the exact source bytes so they can be hashed. It performs no network or process I/O, and a valid cancelled or error envelope is incomplete evidence, not a parse error.
@@ -40,13 +40,21 @@ Useful development commands:
 
 ## Quick GUI guide
 
-### Issuer metadata
+### Home page
 
-Paste an OpenID credential offer or a Credimi credential URL. The page resolves issuer and authorization-server metadata and provides JSON output for copying.
+The indigo hero names the tool. Below it, **Choose an extractor** offers two tabs, **Issuer** and **Verifier**; use the mouse or the arrow keys to switch.
 
-### Presentation metadata
+### Issuer tab
 
-Paste a presentation request or Credimi verification URL. The page resolves the request and exposes its DCQL metadata and resolution details.
+Paste an OpenID credential offer or a Credimi credential URL, then select **Extract metadata**. The page shows the credential issuer metadata, the authorization server metadata and the resolution details, each in its own read-only box.
+
+### Verifier tab
+
+Paste a presentation request or a Credimi verification URL, then select **Extract DCQL**. The page shows the DCQL query and the resolution details.
+
+### Copying and errors
+
+Each result box has a copy icon in its top-right corner; hovering it shows "Copy to clipboard". A failed extraction opens an alert in the bottom-right corner that explains the failure; **Dismiss** closes it.
 
 ## CLI Examples
 

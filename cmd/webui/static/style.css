@@ -132,7 +132,10 @@
   /* ---------- Typography: families ---------- */
   --font-sans:    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono:    "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;   /* code only */
+  /* Identifiers, dates, versions and counts stay in Inter: tabular digits,
+     slashed zero, and the I/l/1 disambiguation set (DESIGN.md §6). */
+  --font-data-features: "tnum" 1, "zero" 1, "ss02" 1;
 
   /* ---------- Typography: scale (matches Figma masters) ---------- */
   --fs-xs:      12px;   --lh-xs: 1.4;
@@ -147,7 +150,7 @@
   --fs-display: 48px;   --lh-display: 48px;   /* display / page title */
 
   /* ---------- Layout ---------- */
-  --max-width: 1280px;
+  --max-width: 1440px;
   --topbar-height: 56px;
 }
 
@@ -624,7 +627,7 @@ input::placeholder {
 .doc-card h4 a:hover { color: var(--brand-primary); }
 
 .doc-card .doc-id {
-  font-family: var(--font-mono);
+  font-feature-settings: var(--font-data-features);
   font-size: var(--fs-xs);
   color: var(--fg-muted);
 }
@@ -650,7 +653,7 @@ input::placeholder {
 /* --- Evidence card --- */
 .evidence-card h4 { margin-bottom: var(--space-1); }
 .evidence-card .evidence-slug {
-  font-family: var(--font-mono);
+  font-feature-settings: var(--font-data-features);
   font-size: var(--fs-xs);
   color: var(--fg-muted);
   margin-bottom: var(--space-2);
@@ -775,7 +778,7 @@ input::placeholder {
 }
 
 .detail-header .doc-id-display {
-  font-family: var(--font-mono);
+  font-feature-settings: var(--font-data-features);
   font-size: var(--fs-sm);
   color: var(--fg-muted);
   margin-bottom: var(--space-3);
@@ -826,7 +829,7 @@ input::placeholder {
 }
 
 .ref-item .ref-source {
-  font-family: var(--font-mono);
+  font-feature-settings: var(--font-data-features);
   font-size: var(--fs-xs);
   color: var(--fg-muted);
   margin-bottom: 2px;
@@ -984,6 +987,7 @@ input::placeholder {
 .text-sm { font-size: var(--fs-sm); }
 .text-xs { font-size: var(--fs-xs); }
 .font-mono { font-family: var(--font-mono); }
+.data { font-feature-settings: var(--font-data-features); }
 
 /* --- Page layout: hero band and sections ---
    A page opens with the brand-blue hero band, then a run of sections; each section opens
@@ -1103,7 +1107,8 @@ input::placeholder {
 }
 .link-card-url {
   overflow-wrap: anywhere;
-  font: 400 var(--fs-xs)/1.5 var(--font-mono);
+  font: 400 var(--fs-xs)/1.5 var(--font-sans);
+  font-feature-settings: var(--font-data-features);
   color: var(--fg-muted);
 }
 a.link-card {
@@ -1156,7 +1161,7 @@ a.link-card::after {
   width: 20px;
   height: 20px;
   padding-top: var(--space-2);
-  font: 500 18px/20px var(--font-mono);
+  font: 500 18px/20px var(--font-sans);
   text-align: center;
   color: var(--fg);
 }
@@ -1818,7 +1823,7 @@ body.role-active .tree-leaf.role-highlight a {
 .test-table tr:hover td { background: var(--bg-muted); }
 
 .test-table .test-id {
-  font-family: var(--font-mono);
+  font-feature-settings: var(--font-data-features);
   font-size: var(--fs-xs);
   color: var(--fg-muted);
   white-space: nowrap;
