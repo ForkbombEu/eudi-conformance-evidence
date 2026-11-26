@@ -6,7 +6,7 @@ EUDI Conformance Evidence extracts durable protocol context from credential offe
 
 ## Technical specs
 
-This is a reusable Go module with CLI and embedded web adapters. It resolves credential offers, issuer and authorization-server metadata, presentation requests, and JWT/JWS payloads while using bounded HTTP access for the web interface.
+This is a reusable Go module with CLI and embedded web adapters. It requires Go 1.26.9, as pinned in `mise.toml`. It resolves credential offers, issuer and authorization-server metadata, presentation requests, and JWT/JWS payloads while using bounded HTTP access for the web interface.
 
 The web interface follows [DESIGN.md](DESIGN.md), the Credimi Extras design specification vendored from [`ForkbombEu/credimi-extras-template`](https://github.com/ForkbombEu/credimi-extras-template). Its canonical assets live in `brand/`, with byte-identical embedded copies under `cmd/webui/static/`; [SPECS.md](SPECS.md) records their locations and hashes. Every page, including the API documentation, carries the same banner, topbar, hero band and footer.
 
